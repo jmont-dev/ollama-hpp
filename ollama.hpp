@@ -43,8 +43,7 @@ class Ollama
 
         if (auto res = this->cli->Post("/api/generate",request_string, "application/json"))
         {
-                if (return_as_json)
-                    response+=res->body;
+                if (return_as_json) response+=res->body;
                 else
                 {
                     json chunk = json::parse(res->body);        
@@ -89,19 +88,12 @@ class Ollama
         std::stringstream response;
 
         auto res = cli->Get("/");
-        res->status;
-        res->body;
 
-        if (res)
-        {
-            response << res->body;
-        }
+        if (res) response << res->body;
 
-        if (response.str()=="Ollama is running")
-            return true;
+        if (response.str()=="Ollama is running") return true;
         
         return false;
-
     }
 
     std::string get_version()
