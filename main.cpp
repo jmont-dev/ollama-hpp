@@ -23,7 +23,8 @@ void on_receive_token(const std::string& token)
 int main()
 {
     //Ollama ollama;
-    std::cout << ollama::generate("llama3", "Why is the sky blue?") << std::endl;
+    std::cout << ollama::get_version() << std::endl;
+    std::cout << ollama::generate("mistral", "Why is the sky blue?") << std::endl;
 
     //std::cout << ollama.generate("mistral", "Why is the sky blue?", std::bind(on_receive_token)) << std::endl;
 

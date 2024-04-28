@@ -43,12 +43,6 @@ class Ollama
 
         if (auto res = this->cli->Post("/api/generate",request_string, "application/json"))
         {
-
-            //std::istringstream iss(res->body);
-
-            //std::string line;
-            //while(std::getline(iss,line))
-            //{
                 if (return_as_json)
                     response+=res->body;
                 else
@@ -56,7 +50,6 @@ class Ollama
                     json chunk = json::parse(res->body);        
                     response+=chunk["response"];
                 }
-            //}
         }
 
         return response;
@@ -160,6 +153,12 @@ namespace ollama
     {
         return ollama.generate(model, prompt, return_as_json);
     }
+
+    inline std::string get_version()
+    {
+        return ollama.get_version();
+    }
+
 
 }
 
