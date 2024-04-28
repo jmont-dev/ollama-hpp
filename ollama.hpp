@@ -21,6 +21,7 @@ class Ollama
         {
             this->server_url = url;
             this->cli = new httplib::Client(url);
+            this->setReadTimeout(60);
         }
 
         Ollama(): Ollama("http://localhost:11434") {}
@@ -39,16 +40,24 @@ class Ollama
 
         std::string request_string = request.dump();
 
-        //std::cout << request_string << std::endl;      
+        std::cout << request_string << std::endl;      
 
-        if (auto res = this->cli->Post("/api/generate",request_string, "application/json"))
+        this->cli->Post("/api/generate",request_string, "application/json");
+
+        if (auto res = this->cli->Get("/api/generate"))
         {
+            std::cout << res->body << std::endl;
+
                 if (return_as_json) response+=res->body;
                 else
                 {
                     json chunk = json::parse(res->body);        
                     response+=chunk["response"];
                 }
+        }
+        else
+        {
+            std::cout << "No response returned: " << res.error() << std::endl;
         }
 
         return response;
@@ -124,6 +133,16 @@ class Ollama
         this->cli = new httplib::Client(server_url);
     }
 
+    void setReadTimeout(const int& seconds)
+    {
+        this->cli->set_read_timeout(seconds);
+    }
+
+    void setWriteTimeout(const int& seconds)
+    {
+        this->cli->set_write_timeout(seconds);
+    }
+
     private:
 
     std::string server_url;
@@ -156,6 +175,15 @@ namespace ollama
         return ollama.get_version();
     }
 
+    inline void setReadTimeout(const int& seconds)
+    {
+        return ollama.setReadTimeout(seconds);
+    }
+
+    inline void setWriteTimeout(const int& seconds)
+    {
+        return ollama.setWriteTimeout(seconds);
+    }
 
 }
 
