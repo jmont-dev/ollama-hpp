@@ -146,6 +146,11 @@ namespace ollama
         return ollama.generate(model, prompt, return_as_json);
     }
 
+    inline bool is_running()
+    {
+        return ollama.is_running();
+    }
+
     inline std::string get_version()
     {
         return ollama.get_version();
