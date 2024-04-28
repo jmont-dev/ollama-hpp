@@ -21,7 +21,7 @@ class Ollama
         {
             this->server_url = url;
             this->cli = new httplib::Client(url);
-            this->setReadTimeout(60);
+            this->setReadTimeout(120);
         }
 
         Ollama(): Ollama("http://localhost:11434") {}
@@ -42,9 +42,8 @@ class Ollama
 
         std::cout << request_string << std::endl;      
 
-        this->cli->Post("/api/generate",request_string, "application/json");
 
-        if (auto res = this->cli->Get("/api/generate"))
+        if (auto res = this->cli->Post("/api/generate",request_string, "application/json"))
         {
             std::cout << res->body << std::endl;
 
