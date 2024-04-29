@@ -8,8 +8,10 @@
 #include "json.hpp"
 
 #include <string>
+#include <fstream>
 #include <iostream>
 #include <functional>
+
 
 using json = nlohmann::json;
 
@@ -91,6 +93,54 @@ class Ollama
 
     }
 
+    void create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
+    {
+
+        // Generate the JSON request
+        json request;
+        request["name"] = modelName;
+
+        if (loadFromFile)
+        {
+            // Open the file
+            std::ifstream file(modelFile, std::ios::binary);
+
+            // Check if the file is open
+            if (!file.is_open()) {
+                std::cerr << "Failed to open file.\n";
+                return 1;
+            }
+
+            // Read the entire file into a string using iterators
+            std::string file_contents((std::istreambuf_iterator<char>(file)),
+                                    std::istreambuf_iterator<char>());
+            
+            request["modelFile"] = file_contents;                                                
+        }
+        else request["modelFile"] = modelFile;
+
+        std::string request_string = request.dump();
+        std::cout << request_string << std::endl;  
+
+        std::string response;
+
+        if (auto res = this->cli->Post("/api/create",request_string, "application/json"))
+        {
+            std::cout << res->body << std::endl;
+
+            json chunk = json::parse(res->body);        
+            response+=chunk["response"];
+        }
+        }
+        else
+        {
+            std::cout << "No response returned: " << res.error() << std::endl;
+        }
+
+    }
+
+
+
     bool is_running()
     {
         std::stringstream response;
@@ -162,6 +212,11 @@ namespace ollama
     inline std::string generate(const std::string& model,const std::string& prompt, bool return_as_json=false)
     {
         return ollama.generate(model, prompt, return_as_json);
+    }
+
+    inline void create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
+    {
+        return ollama.create(modelName, modelFile, loadFromFile);
     }
 
     inline bool is_running()
