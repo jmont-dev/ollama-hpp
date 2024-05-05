@@ -15,22 +15,7 @@
 #include <iostream>
 #include <functional>
 
-
 using json = nlohmann::json;
-
-    bool log_tokens(const char *data, size_t data_length)
-    {
-        std::string message(data, data_length);
-        json chunk = json::parse(message);        
-        
-        std::string response=chunk["response"];
-        bool done = chunk["done"];
-
-        std::cout << response << std::flush;
-        if (done) std::cout << std::endl;
-
-        return !done;
-    }
 
 class Ollama
 {
