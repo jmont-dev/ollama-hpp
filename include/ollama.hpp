@@ -2,7 +2,7 @@
 #define OLLAMA_HPP
 
 // Used for sending REST requests to the ollama server
-#include "cpp-httplib/httplib.h"
+#include "httplib.h"
 
 //Used for formatting JSON with ollama
 #include "json.hpp"

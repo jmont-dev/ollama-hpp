@@ -1,2 +1,5 @@
-examples: main.cpp
-	g++ main.cpp -o ollama-test -std=c++11 -pthread
+examples: examples/main.cpp
+	mkdir -p build
+	g++ examples/main.cpp -Iinclude -o build/ollama-test -std=c++11 -pthread
+clean:
+	rm -rf build

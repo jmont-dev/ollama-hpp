@@ -11,7 +11,7 @@ void on_receive_token(const std::string& token, bool done)
 {
     std::cout << token << std::flush;
     if (done) std::cout << std::endl;
-    //output +=token;
+    output +=token;
 }
 
 int main()
