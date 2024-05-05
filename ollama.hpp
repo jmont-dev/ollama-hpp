@@ -7,6 +7,9 @@
 //Used for formatting JSON with ollama
 #include "json.hpp"
 
+//Used for Base64 formatting of images
+#include "Base64.h"
+
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -14,6 +17,13 @@
 
 
 using json = nlohmann::json;
+
+    bool log_tokens(const char *data, size_t data_length)
+    {
+        std::string message(data, data_length);
+        std::cout << "Message was:" << message << std::endl;
+        return true;
+    }
 
 class Ollama
 {
@@ -32,6 +42,10 @@ class Ollama
     // Generate a non-streaming reply as a string.
     std::string generate(const std::string& model,const std::string& prompt, bool return_as_json=false)
     {
+
+
+        //std::vector<std::string> imageFiles;
+
         std::string response="";
 
         // Generate the JSON request
@@ -64,6 +78,7 @@ class Ollama
         return response;
     }
 
+
     // Generate a streaming reply where a user-defined callback function is invoked when each token is received.
     void generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&)> on_receive_token)//, bool receive_json=false)
     {
@@ -73,7 +88,7 @@ class Ollama
         json request;
         request["model"] = model;
         request["prompt"] = prompt;
-        request["stream"] = true;
+        //request["stream"] = true;
 
         std::string request_string = request.dump();
 
@@ -81,9 +96,14 @@ class Ollama
 
         auto stream_callback = [on_receive_token](const char *data, size_t data_length) {std::string token(data, data_length); on_receive_token(token);};
 
-        httplib::Headers headers = { {"Content-Type","application/json"}};
+        //httplib::Headers headers = { {"Content-Type","application/json"}};
 
         //this->cli->Post("/api/generate", headers, request_string, "application/json",[&](const char* data, size_t data_length) {return true;})
+
+        std::function<bool(const char *data, size_t data_length)> callback = log_tokens;
+        //callback=log_tokens;
+
+        this->cli->Post("/api/generate", request_string, "application/json", callback);
 
         //if (auto res =  ) //stream_callback))
         //{
@@ -108,7 +128,7 @@ class Ollama
             // Check if the file is open
             if (!file.is_open()) {
                 std::cerr << "Failed to open file.\n";
-                return 1;
+                return;
             }
 
             // Read the entire file into a string using iterators
@@ -131,14 +151,12 @@ class Ollama
             json chunk = json::parse(res->body);        
             response+=chunk["response"];
         }
-        }
         else
         {
             std::cout << "No response returned: " << res.error() << std::endl;
         }
 
     }
-
 
 
     bool is_running()
@@ -212,6 +230,11 @@ namespace ollama
     inline std::string generate(const std::string& model,const std::string& prompt, bool return_as_json=false)
     {
         return ollama.generate(model, prompt, return_as_json);
+    }
+
+    inline void generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&)> on_receive_token)
+    {
+        return ollama.generate(model, prompt, on_receive_token);
     }
 
     inline void create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
