@@ -21,8 +21,15 @@ using json = nlohmann::json;
     bool log_tokens(const char *data, size_t data_length)
     {
         std::string message(data, data_length);
-        std::cout << "Message was:" << message << std::endl;
-        return true;
+        json chunk = json::parse(message);        
+        
+        std::string response=chunk["response"];
+        bool done = chunk["done"];
+
+        std::cout << response << std::flush;
+        if (done) std::cout << std::endl;
+
+        return !done;
     }
 
 class Ollama
@@ -55,9 +62,7 @@ class Ollama
         request["stream"] = false;
 
         std::string request_string = request.dump();
-
         std::cout << request_string << std::endl;      
-
 
         if (auto res = this->cli->Post("/api/generate",request_string, "application/json"))
         {
@@ -80,7 +85,7 @@ class Ollama
 
 
     // Generate a streaming reply where a user-defined callback function is invoked when each token is received.
-    void generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&)> on_receive_token)//, bool receive_json=false)
+    void generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&, bool)> on_receive_token, bool receive_json=false)
     {
         std::string response="";
 
@@ -88,28 +93,28 @@ class Ollama
         json request;
         request["model"] = model;
         request["prompt"] = prompt;
-        //request["stream"] = true;
+        request["stream"] = true;
 
         std::string request_string = request.dump();
-
         std::cout << request_string << std::endl;
 
-        auto stream_callback = [on_receive_token](const char *data, size_t data_length) {std::string token(data, data_length); on_receive_token(token);};
+        auto stream_callback = [on_receive_token, receive_json](const char *data, size_t data_length)->bool{
+            
+            std::string message(data, data_length);
+            json chunk = json::parse(message);        
+            
+            std::string response=chunk["response"];
+            bool done = chunk["done"];
 
-        //httplib::Headers headers = { {"Content-Type","application/json"}};
+            // Either pass back the entire json string or the parsed token.
+            on_receive_token( (receive_json ? message: response), done);
 
-        //this->cli->Post("/api/generate", headers, request_string, "application/json",[&](const char* data, size_t data_length) {return true;})
+            return !done;
 
-        std::function<bool(const char *data, size_t data_length)> callback = log_tokens;
-        //callback=log_tokens;
+        };
 
-        this->cli->Post("/api/generate", request_string, "application/json", callback);
-
-        //if (auto res =  ) //stream_callback))
-        //{
-        //   if (res->status==200)
-        //        throw new std::runtime_error("Received HTTP error: "+res.error());
-        //}
+        if (auto res = this->cli->Post("/api/generate", request_string, "application/json", stream_callback)) {}
+        else {std::cout << "No response returned: " << res.error() << std::endl;}
 
     }
 
@@ -232,9 +237,9 @@ namespace ollama
         return ollama.generate(model, prompt, return_as_json);
     }
 
-    inline void generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&)> on_receive_token)
+    inline void generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&, bool)> on_receive_token, bool return_as_json=false)
     {
-        return ollama.generate(model, prompt, on_receive_token);
+        return ollama.generate(model, prompt, on_receive_token, return_as_json);
     }
 
     inline void create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
