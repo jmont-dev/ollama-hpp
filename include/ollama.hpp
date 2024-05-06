@@ -14,6 +14,7 @@
 #include <fstream>
 #include <iostream>
 #include <functional>
+#include <exception>
 
 using json = nlohmann::json;
 
@@ -32,11 +33,8 @@ class Ollama
         ~Ollama() {}
 
     // Generate a non-streaming reply as a string.
-    std::string generate(const std::string& model,const std::string& prompt, bool return_as_json=false)
+    std::string generate(const std::string& model,const std::string& prompt, json options=nullptr, bool return_as_json=false)
     {
-
-
-        //std::vector<std::string> imageFiles;
 
         std::string response="";
 
@@ -44,6 +42,7 @@ class Ollama
         json request;
         request["model"] = model;
         request["prompt"] = prompt;
+        if (options) request["options"] = options["options"];
         request["stream"] = false;
 
         std::string request_string = request.dump();
@@ -251,6 +250,15 @@ namespace ollama
     {
         return ollama.setWriteTimeout(seconds);
     }
+
+    class OllamaException : public std::exception {
+    private:
+        std::string message;
+
+    public:
+        OllamaException(const std::string& msg) : message(msg) {}
+        const char* what() const noexcept override { return message.c_str(); }
+    };
 
 }
 
