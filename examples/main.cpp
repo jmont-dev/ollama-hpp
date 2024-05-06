@@ -5,6 +5,7 @@
 #include <string>
 #include <functional>
 #include <thread>
+#include <chrono>
 
 std::string output;
 
@@ -17,7 +18,15 @@ void on_receive_token(const std::string& token, bool done)
 
 int main()
 {
-    
+
+    // Optional. By default, the server URL is set to http://localhost:11434. Use this function if you need to point to a different URL.
+    ollama::setServerURL("http://localhost:11434");    
+
+    // Optional. Set the read and write timeouts in seconds for receiving from and sending data to ollama.
+    // If you have a large model with a long response time you may need to increase these.
+    ollama::setReadTimeout(30);
+    ollama::setWriteTimeout(30);
+
     // Check to see whether the ollama server is running.
     std::cout << ollama::is_running() << std::endl;
     
@@ -43,7 +52,7 @@ int main()
     std::thread new_thread( [callback]{ ollama::generate("llama3", "Why is the sky blue?", callback); } );
 
     // Prevent the main thread from exiting while we wait from an asynchronous response.
-    while(1) { std::(100); }
+    while(1) { std::this_thread::sleep_for(std::chrono::microseconds(100) ); }
     
     // If you don't want to use the static singleton defined in the namespace, you can create an Ollama instance itself.
     // This is helpful if you have multiple Ollama servers or need custom control over the object.
