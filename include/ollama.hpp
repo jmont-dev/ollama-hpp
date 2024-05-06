@@ -18,7 +18,9 @@
 
 using json = nlohmann::json;
 
-class ollama::Exception;
+class ollama::exception;
+class ollama::response;
+
 
 class Ollama
 {
@@ -65,7 +67,7 @@ class Ollama
         {
             std::stringstream ss; 
             ss << "No response returned" << res.error();
-            throw new ollama::Exception(ss.str());
+            throw new ollama::exception(ss.str());
         }
 
         return response;
@@ -276,12 +278,64 @@ namespace ollama
         return ollama.setWriteTimeout(seconds);
     }
 
-    class Exception : public std::exception {
+    class response {
+
+        public:
+
+            response(std::string json_string)
+            {
+                this->json_string = json_string;
+            }
+            
+            ~response(){};
+
+            bool valid(){return valid};
+
+            std::string as_json_string()
+            {
+                return json_string;
+            }
+
+            std::vector<json> as_json()
+            {
+                std::vector<json> json_messages;
+
+                std::istringstream iss(this->json_string);
+                std::string line;
+
+                while (std::getline(iss, line))
+                {
+                    json message = json::parse();        
+                    json_messages.push_back(message);
+                }
+
+                return json_messages;                
+            }
+
+            std::string as_string()
+            {
+                std::string response;
+                json chunk = json::parse(this->json_string);        
+                response+=chunk["response"];
+                return response;                
+            }
+
+
+
+        private:
+
+        //Optimize by caching values if they have not changed
+        std::string json_string;
+        bool valid;
+
+    };
+
+    class exception : public std::exception {
     private:
         std::string message;
 
     public:
-        Exception(const std::string& msg) : message(msg) {}
+        exception(const std::string& msg) : message(msg) {}
         const char* what() const noexcept override { return message.c_str(); }
     };
 
