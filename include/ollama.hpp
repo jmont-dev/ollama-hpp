@@ -73,7 +73,7 @@ class Ollama
 
 
     // Generate a streaming reply where a user-defined callback function is invoked when each token is received.
-    void generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&, bool)> on_receive_token, bool receive_json=false)
+    void generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&, bool)> on_receive_token, json options=nullptr, bool receive_json=false)
     {
         std::string response="";
 
@@ -81,6 +81,7 @@ class Ollama
         json request;
         request["model"] = model;
         request["prompt"] = prompt;
+        if (options) request["options"] = options["options"];
         request["stream"] = true;
 
         std::string request_string = request.dump();
@@ -225,7 +226,7 @@ namespace ollama
         return ollama.generate(model, prompt, return_as_json);
     }
 
-    inline void generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&, bool)> on_receive_token, bool return_as_json=false)
+    inline void generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&, bool)> on_receive_token, json options=nullptr, bool return_as_json=false)
     {
         return ollama.generate(model, prompt, on_receive_token, return_as_json);
     }
