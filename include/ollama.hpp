@@ -152,17 +152,30 @@ class Ollama
 
     }
 
+    bool load_model(const std::string& model)
+    {
+        json request;
+        request["model"] = model;
+        std::string request_string = request.dump();
+
+        // Send a blank request with the model name to instruct ollama to load the model into memory.
+        if (auto res = this->cli->Post("/api/generate", request_string, "application/json"))
+        {
+            std::cout << res->body << std::endl;
+            json response = json::parse(res->body);
+            return response["done"];        
+        }
+
+        // If we didn't get a response from the server indicating the model was created, return false.
+        return false;                
+    }
 
     bool is_running()
     {
         std::stringstream response;
-
         auto res = cli->Get("/");
-
         if (res) response << res->body;
-
-        if (response.str()=="Ollama is running") return true;
-        
+        if (response.str()=="Ollama is running") return true;        
         return false;
     }
 
@@ -239,6 +252,11 @@ namespace ollama
     inline bool is_running()
     {
         return ollama.is_running();
+    }
+
+    inline bool load_model(const std::string& model)
+    {
+        return ollama.load_model(model);
     }
 
     inline std::string get_version()
