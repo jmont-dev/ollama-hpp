@@ -16,6 +16,11 @@ void on_receive_token(const std::string& token, bool done)
     output +=token;
 }
 
+void on_receive_json(const json& token)
+{
+    std::cout << token.dump() << std::endl;
+}
+
 int main()
 {
 
