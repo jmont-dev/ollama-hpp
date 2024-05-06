@@ -305,7 +305,7 @@ namespace ollama
 
                 while (std::getline(iss, line))
                 {
-                    json message = json::parse();        
+                    json message = json::parse(line);        
                     json_messages.push_back(message);
                 }
 
