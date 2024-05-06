@@ -18,6 +18,8 @@
 
 using json = nlohmann::json;
 
+class ollama::Exception;
+
 class Ollama
 {
     public:
@@ -61,7 +63,9 @@ class Ollama
         }
         else
         {
-            std::cout << "No response returned: " << res.error() << std::endl;
+            std::stringstream ss; 
+            ss << "No response returned" << res.error();
+            throw new ollama::Exception(ss.str());
         }
 
         return response;
@@ -216,7 +220,7 @@ namespace ollama
         ollama.setServerURL(server_url);
     }
 
-    inline std::string generate(const std::string& model,const std::string& prompt, bool return_as_json=false)
+    inline std::string generate(const std::string& model,const std::string& prompt, json options=nullptr, bool return_as_json=false)
     {
         return ollama.generate(model, prompt, return_as_json);
     }
@@ -251,12 +255,12 @@ namespace ollama
         return ollama.setWriteTimeout(seconds);
     }
 
-    class OllamaException : public std::exception {
+    class Exception : public std::exception {
     private:
         std::string message;
 
     public:
-        OllamaException(const std::string& msg) : message(msg) {}
+        Exception(const std::string& msg) : message(msg) {}
         const char* what() const noexcept override { return message.c_str(); }
     };
 
