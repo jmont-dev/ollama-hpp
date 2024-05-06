@@ -48,6 +48,9 @@ int main()
     // Set options to include with use of the model. These should be specified in JSON.
     json options;
     options["options"]["top_k"] = 20;
+    
+    // You can also pass in the options as a string containing json.
+    //std::string string_options="{options: {top_k:20} }";
 
     // Perform a simple generation which includes model options.
     std::cout << ollama::generate("llama3", "Why is the sky blue?", options) << std::endl;
