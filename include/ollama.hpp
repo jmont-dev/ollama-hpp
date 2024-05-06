@@ -107,7 +107,7 @@ class Ollama
 
     }
 
-    void create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
+    bool create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
     {
 
         // Generate the JSON request
@@ -122,7 +122,7 @@ class Ollama
             // Check if the file is open
             if (!file.is_open()) {
                 std::cerr << "Failed to open file.\n";
-                return;
+                return false;
             }
 
             // Read the entire file into a string using iterators
@@ -142,13 +142,15 @@ class Ollama
         {
             std::cout << res->body << std::endl;
 
-            json chunk = json::parse(res->body);        
-            response+=chunk["response"];
+            json chunk = json::parse(res->body);
+            if (chunk["status"]=="success") return true;        
         }
         else
         {
             std::cout << "No response returned: " << res.error() << std::endl;
         }
+
+        return false;
 
     }
 
@@ -244,7 +246,7 @@ namespace ollama
         return ollama.generate(model, prompt, on_receive_token, return_as_json);
     }
 
-    inline void create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
+    inline bool create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
     {
         return ollama.create(modelName, modelFile, loadFromFile);
     }
