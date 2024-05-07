@@ -18,12 +18,81 @@
 
 using json = nlohmann::json;
 
+// Namespace types and classes
 namespace ollama
 {
-    class exception;
-    class response;
-}
+    class response {
 
+        public:
+
+            response(const std::string& json_string)
+            {
+                this->json_string = json_string;
+            }
+            
+            ~response(){};
+
+            bool is_valid(){return valid;};
+
+            std::string as_json_string()
+            {
+                return json_string;
+            }
+
+            std::vector<json> as_json()
+            {
+
+                // If we haven't previously parsed the JSON for this response, do so and cache it.
+                if (json_entries.empty())
+                    parseLinesToJSON();
+
+                return json_entries;                
+            }
+
+            std::string as_string()
+            {
+                std::string response;
+                json chunk = json::parse(this->json_string);        
+                response+=chunk["response"];
+                return response;                
+            }
+
+        private:
+
+        bool parseLinesToJSON()
+        {
+            try
+            {
+                std::istringstream iss(this->json_string);
+                std::string line;
+
+                while (std::getline(iss, line))
+                {
+                    json message = json::parse(line);        
+                    json_entries.push_back(message);
+                }
+            }
+            catch (...) { json_entries.clear(); return false; }
+
+            return true;
+        }
+
+        //Optimize by caching values if they have not changed
+        std::string json_string;
+        std::vector<json> json_entries;
+        bool valid;
+
+    };
+
+    class exception : public std::exception {
+    private:
+        std::string message;
+
+    public:
+        exception(const std::string& msg) : message(msg) {}
+        const char* what() const noexcept override { return message.c_str(); }
+    };
+}
 
 class Ollama
 {
@@ -70,7 +139,7 @@ class Ollama
         {
             std::stringstream ss; 
             ss << "No response returned" << res.error();
-            //throw new ollama::exception(ss.str());
+            throw new ollama::exception(ss.str());
         }
 
         return response;
@@ -231,6 +300,7 @@ class Ollama
 
 };
 
+// Functions associated with Ollama singleton
 namespace ollama
 {
     // Use directly from the namespace as a singleton
@@ -248,7 +318,7 @@ namespace ollama
 
     inline void generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&, bool)> on_receive_token, json options=nullptr, bool return_as_json=false)
     {
-        return ollama.generate(model, prompt, on_receive_token, return_as_json);
+        ollama.generate(model, prompt, on_receive_token, return_as_json);
     }
 
     inline bool create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
@@ -273,85 +343,13 @@ namespace ollama
 
     inline void setReadTimeout(const int& seconds)
     {
-        return ollama.setReadTimeout(seconds);
+        ollama.setReadTimeout(seconds);
     }
 
     inline void setWriteTimeout(const int& seconds)
     {
-        return ollama.setWriteTimeout(seconds);
+        ollama.setWriteTimeout(seconds);
     }
-
-    class response {
-
-        public:
-
-            response(const std::string& json_string)
-            {
-                this->json_string = json_string;
-            }
-            
-            ~response(){};
-
-            bool is_valid(){return valid;};
-
-            std::string as_json_string()
-            {
-                return json_string;
-            }
-
-            std::vector<json> as_json()
-            {
-
-                // If we haven't previously parsed the JSON for this response, do so and cache it.
-                if (json_entries.empty())
-                    parseLinesToJSON();
-
-                return json_entries;                
-            }
-
-            std::string as_string()
-            {
-                std::string response;
-                json chunk = json::parse(this->json_string);        
-                response+=chunk["response"];
-                return response;                
-            }
-
-        private:
-
-        bool parseLinesToJSON()
-        {
-            try
-            {
-                std::istringstream iss(this->json_string);
-                std::string line;
-
-                while (std::getline(iss, line))
-                {
-                    json message = json::parse(line);        
-                    json_entries.push_back(message);
-                }
-            }
-            catch (...) { json_entries.clear(); return false; }
-
-            return true;
-        }
-
-        //Optimize by caching values if they have not changed
-        std::string json_string;
-        std::vector<json> json_entries;
-        bool valid;
-
-    };
-
-    class exception : public std::exception {
-    private:
-        std::string message;
-
-    public:
-        exception(const std::string& msg) : message(msg) {}
-        const char* what() const noexcept override { return message.c_str(); }
-    };
 
 };
 
