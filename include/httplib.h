@@ -7550,7 +7550,7 @@ inline std::unique_ptr<Response> ClientImpl::send_with_content_provider(
   }
 
   req.response_handler = std::move(nullptr);
-  req.content_receiver =
+  if (content_receiver) req.content_receiver =
       [content_receiver](const char *data, size_t data_length,
                          uint64_t /*offset*/, uint64_t /*total_length*/) {
         return content_receiver(data, data_length);

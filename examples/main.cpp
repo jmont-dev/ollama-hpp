@@ -35,7 +35,7 @@ int main()
     ollama::setWriteTimeout(120);
 
     // Check to see whether the ollama server is running.
-    std::cout << ollama::is_running() << std::endl;
+    std::cout << (ollama::is_running() ? "Ollama is running" : "Ollama is not running") << std::endl;
     
     // Get the version of the ollama server
     std::cout << ollama::get_version() << std::endl;
@@ -43,7 +43,6 @@ int main()
     // Optionally send a request to ollama to load a model into memory.
     // This will occur automatically during generation but this allows you to preload a model before using it.
     bool model_loaded = ollama::load_model("llama3");
-
 
     // Perform a simple generation to a string by specifying a model and a prompt. The response will be returned as one string without streaming the reply.
     std::cout << ollama::generate("llama3", "Why is the sky blue?") << std::endl;
