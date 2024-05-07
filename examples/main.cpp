@@ -16,9 +16,11 @@ void on_receive_token(const std::string& token, bool done)
     output +=token;
 }
 
-void on_receive_json(const json& token)
-{
-    std::cout << token.dump() << std::endl;
+void on_receive_response(const ollama::response& response)
+{   
+    std::cout << response.as_simple_string() << std::flush;
+
+    if (response.as_json()[0]["done"]==true) std::cout << std::endl;
 }
 
 int main()
@@ -29,8 +31,8 @@ int main()
 
     // Optional. Set the read and write timeouts in seconds for receiving from and sending data to ollama.
     // If you have a large model with a long response time you may need to increase these.
-    ollama::setReadTimeout(30);
-    ollama::setWriteTimeout(30);
+    ollama::setReadTimeout(120);
+    ollama::setWriteTimeout(120);
 
     // Check to see whether the ollama server is running.
     std::cout << ollama::is_running() << std::endl;
@@ -42,6 +44,7 @@ int main()
     // This will occur automatically during generation but this allows you to preload a model before using it.
     bool model_loaded = ollama::load_model("llama3");
 
+
     // Perform a simple generation to a string by specifying a model and a prompt. The response will be returned as one string without streaming the reply.
     std::cout << ollama::generate("llama3", "Why is the sky blue?") << std::endl;
     
@@ -50,7 +53,7 @@ int main()
     options["options"]["top_k"] = 20;
     
     // You can also pass in the options as a string containing json.
-    //std::string string_options="{options: {top_k:20} }";
+    std::string string_options="{options: {top_k:20} }";
 
     // Perform a simple generation which includes model options.
     std::cout << ollama::generate("llama3", "Why is the sky blue?", options) << std::endl;
@@ -59,6 +62,10 @@ int main()
     // Socket communication is blocking so this will still block the main thread.
     std::function<void(const std::string&, bool)> callback = on_receive_token;    
     ollama::generate("llama3", "Why is the sky blue?", callback);
+
+    std::function<void(const ollama::response&)> response_callback = on_receive_response;    
+
+    ollama::generate("llama3", "Why is the sky blue?", response_callback);
 
     // You can launch the generation in a thread with a callback to use it asynchronously.
     std::thread new_thread( [callback]{ ollama::generate("llama3", "Why is the sky blue?", callback); } );
@@ -72,4 +79,6 @@ int main()
 
     // You can use all of the same functions from this instanced version of the class.
     std::cout << my_ollama_server.generate("llama3", "Why is the sky blue?") << std::endl;
+
+    
 }

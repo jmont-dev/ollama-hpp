@@ -21,6 +21,21 @@ using json = nlohmann::json;
 // Namespace types and classes
 namespace ollama
 {
+
+    class request {
+
+        public:
+            request(std::string& model, std::string& prompt, json options)
+            {   
+                json_request["model"] = model;
+                json_request["prompt"] = prompt;
+                json_request["options"] = options;
+            }
+            ~request(){};
+
+        json json_request;
+    };
+
     class response {
 
         public:
@@ -28,32 +43,32 @@ namespace ollama
             response(const std::string& json_string)
             {
                 this->json_string = json_string;
+                valid = parseLinesToJSON();
             }
             
             ~response(){};
 
-            bool is_valid(){return valid;};
+            bool is_valid() const {return valid;};
 
-            std::string as_json_string()
+            const std::string as_json_string() const
             {
                 return json_string;
             }
 
-            std::vector<json> as_json()
+            const std::vector<json> as_json() const
             {
-
-                // If we haven't previously parsed the JSON for this response, do so and cache it.
-                if (json_entries.empty())
-                    parseLinesToJSON();
-
                 return json_entries;                
             }
 
-            std::string as_string()
+            const std::string as_simple_string() const
             {
                 std::string response;
-                json chunk = json::parse(this->json_string);        
-                response+=chunk["response"];
+                
+                for (auto&& json_entry: json_entries)
+                {
+                    response+=json_entry["response"];
+                }
+
                 return response;                
             }
 
@@ -68,7 +83,8 @@ namespace ollama
 
                 while (std::getline(iss, line))
                 {
-                    json message = json::parse(line);        
+                    json message = json::parse(line);
+                    simple_string+=message["response"];        
                     json_entries.push_back(message);
                 }
             }
@@ -79,6 +95,7 @@ namespace ollama
 
         //Optimize by caching values if they have not changed
         std::string json_string;
+        std::string simple_string;
         std::vector<json> json_entries;
         bool valid;
 
@@ -181,6 +198,36 @@ class Ollama
 
     }
 
+    // Generate a streaming reply where a user-defined callback function is invoked when each token is received.
+    void generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_token, json options=nullptr)
+    {
+        std::string response="";
+
+        // Generate the JSON request
+        json request;
+        request["model"] = model;
+        request["prompt"] = prompt;
+        //if (options) request["options"] = options["options"];
+        request["stream"] = true;
+
+        std::string request_string = request.dump();
+        std::cout << request_string << std::endl;
+
+        auto stream_callback = [on_receive_token](const char *data, size_t data_length)->bool{
+            
+            std::string message(data, data_length);
+            ollama::response response(message);
+            on_receive_token(response);
+
+            return true;
+
+        };
+
+        if (auto res = this->cli->Post("/api/generate", request_string, "application/json", stream_callback)) {}
+        else {std::cout << "No response returned: " << res.error() << std::endl;}
+
+    }
+
     bool create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
     {
 
@@ -233,6 +280,7 @@ class Ollama
         json request;
         request["model"] = model;
         std::string request_string = request.dump();
+        std::cout << request_string << std::endl;
 
         // Send a blank request with the model name to instruct ollama to load the model into memory.
         if (auto res = this->cli->Post("/api/generate", request_string, "application/json"))
@@ -313,12 +361,17 @@ namespace ollama
 
     inline std::string generate(const std::string& model,const std::string& prompt, json options=nullptr, bool return_as_json=false)
     {
-        return ollama.generate(model, prompt, return_as_json);
+        return ollama.generate(model, prompt, options, return_as_json);
     }
 
     inline void generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&, bool)> on_receive_token, json options=nullptr, bool return_as_json=false)
     {
-        ollama.generate(model, prompt, on_receive_token, return_as_json);
+        ollama.generate(model, prompt, on_receive_token, options, return_as_json);
+    }
+
+    inline void generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_response, json options=nullptr)
+    {
+        ollama.generate(model, prompt, on_receive_response, options);
     }
 
     inline bool create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
