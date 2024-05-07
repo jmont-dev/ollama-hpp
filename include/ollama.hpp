@@ -18,8 +18,11 @@
 
 using json = nlohmann::json;
 
-class ollama::exception;
-class ollama::response;
+namespace ollama
+{
+    class exception;
+    class response;
+}
 
 
 class Ollama
@@ -67,7 +70,7 @@ class Ollama
         {
             std::stringstream ss; 
             ss << "No response returned" << res.error();
-            throw new ollama::exception(ss.str());
+            //throw new ollama::exception(ss.str());
         }
 
         return response;
@@ -282,14 +285,14 @@ namespace ollama
 
         public:
 
-            response(std::string json_string)
+            response(const std::string& json_string)
             {
                 this->json_string = json_string;
             }
             
             ~response(){};
 
-            bool valid(){return valid};
+            bool is_valid(){return valid;};
 
             std::string as_json_string()
             {
@@ -298,18 +301,12 @@ namespace ollama
 
             std::vector<json> as_json()
             {
-                std::vector<json> json_messages;
 
-                std::istringstream iss(this->json_string);
-                std::string line;
+                // If we haven't previously parsed the JSON for this response, do so and cache it.
+                if (json_entries.empty())
+                    parseLinesToJSON();
 
-                while (std::getline(iss, line))
-                {
-                    json message = json::parse(line);        
-                    json_messages.push_back(message);
-                }
-
-                return json_messages;                
+                return json_entries;                
             }
 
             std::string as_string()
@@ -320,12 +317,29 @@ namespace ollama
                 return response;                
             }
 
-
-
         private:
+
+        bool parseLinesToJSON()
+        {
+            try
+            {
+                std::istringstream iss(this->json_string);
+                std::string line;
+
+                while (std::getline(iss, line))
+                {
+                    json message = json::parse(line);        
+                    json_entries.push_back(message);
+                }
+            }
+            catch (...) { json_entries.clear(); return false; }
+
+            return true;
+        }
 
         //Optimize by caching values if they have not changed
         std::string json_string;
+        std::vector<json> json_entries;
         bool valid;
 
     };
@@ -339,7 +353,7 @@ namespace ollama
         const char* what() const noexcept override { return message.c_str(); }
     };
 
-}
+};
 
 
 #endif
