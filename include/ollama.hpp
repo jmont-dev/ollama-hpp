@@ -55,9 +55,9 @@ namespace ollama
 
     class message {
         public:
-            message(const std::string& role, const std::string content, std::vector<ollama::image> images)
+            message(const std::string& role, const std::string content, std::vector<ollama::image> images): role(role), content(content), images(images)
             {
-
+                
             }
             ~message(){};
 
