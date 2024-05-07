@@ -17,19 +17,80 @@
 #include <exception>
 
 using json = nlohmann::json;
+using base64 = macaron::Base64;
 
 // Namespace types and classes
 namespace ollama
 {
 
+    class image {
+        public:
+            image(const std::string& filepath, bool loadFromFile=true)
+            {
+                std::ifstream file(filepath, std::ios::binary);
+                if (!file) {
+                    std::cerr << "Cannot open the file!" << std::endl;
+                    valid = false;
+                }
+
+                // Read the entire file into a string
+                std::string file_contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());            
+                this->base64_sequence = macaron::Base64::Encode(file_contents);
+                valid = true;
+
+            }
+            image(const std::string base64_sequence) 
+            {
+                this->base64_sequence = base64_sequence;
+            }
+            ~image(){};
+
+            bool is_valid(){return valid;}
+
+        private:
+            std::string base64_sequence;
+            bool valid;
+    };
+
+
+    class message {
+        public:
+            message(const std::string& role, const std::string content, std::vector<ollama::image> images)
+            {
+
+            }
+            ~message(){};
+
+            std::string as_json_string() const
+            {
+                
+            }
+        private:
+
+        std::string role, content;
+        std::vector<ollama::image> images;
+
+    };
+
+
     class request {
 
         public:
-            request(std::string& model, std::string& prompt, json options)
+            // Create a request for a generation.
+            request(const std::string& model,const std::string& prompt, bool stream=false, const json options=nullptr,const std::vector<std::string> images=std::vector<std::string>())
             {   
                 json_request["model"] = model;
                 json_request["prompt"] = prompt;
                 json_request["options"] = options;
+                json_request["stream"] = stream;
+                json_request["images"] = images;
+            }
+            // Create a request for a chat completion.
+            request(const std::string& model,const std::string& prompt,std::vector<message> messages, bool stream=false, const json options=nullptr)
+            {
+                json_request["model"] = model;
+                json_request["messages"] = messages;
+                json_request["stream"] = stream;
             }
             ~request(){};
 
@@ -342,6 +403,11 @@ class Ollama
     }
 
     private:
+
+    bool send_request(const ollama::request& request, std::function<void(const ollama::response&)> on_receive_response=nullptr)
+    {
+
+    }
 
     std::string server_url;
     httplib::Client *cli;
