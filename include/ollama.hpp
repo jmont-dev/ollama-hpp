@@ -195,7 +195,7 @@ class Ollama
         ~Ollama() {}
 
     // Generate a non-streaming reply as a string.
-    std::string generate(const std::string& model,const std::string& prompt, json options=nullptr, bool return_as_json=false)
+    std::string generate(const std::string& model,const std::string& prompt, json options=nullptr, std::vector<std::string> images=std::vector<std::string>(), bool return_as_json=false)
     {
 
         std::string response="";
@@ -206,6 +206,7 @@ class Ollama
         request["prompt"] = prompt;
         if (options!=nullptr) request["options"] = options["options"];
         request["stream"] = false;
+        if (!images.empty()) request["images"] = images;
 
         std::string request_string = request.dump();
         std::cout << request_string << std::endl;      
@@ -434,9 +435,9 @@ namespace ollama
         ollama.setServerURL(server_url);
     }
 
-    inline std::string generate(const std::string& model,const std::string& prompt, json options=nullptr, bool return_as_json=false)
+    inline std::string generate(const std::string& model,const std::string& prompt, json options=nullptr, std::vector<std::string> images=std::vector<std::string>(), bool return_as_json=false)
     {
-        return ollama.generate(model, prompt, options, return_as_json);
+        return ollama.generate(model, prompt, options, images, return_as_json);
     }
 
     inline void generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&, bool)> on_receive_token, json options=nullptr, bool return_as_json=false)
