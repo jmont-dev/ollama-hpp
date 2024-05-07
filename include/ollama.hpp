@@ -34,7 +34,8 @@ namespace ollama
                 }
 
                 // Read the entire file into a string
-                std::string file_contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());            
+                std::string file_contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
                 this->base64_sequence = macaron::Base64::Encode(file_contents);
                 valid = true;
 
@@ -44,6 +45,11 @@ namespace ollama
                 this->base64_sequence = base64_sequence;
             }
             ~image(){};
+
+            const std::string as_base64_string() const
+            {
+                return base64_sequence;
+            }
 
             bool is_valid(){return valid;}
 
@@ -63,7 +69,9 @@ namespace ollama
 
             std::string as_json_string() const
             {
-                
+                std::string json_string;
+
+                return json_string;
             }
         private:
 
@@ -89,7 +97,7 @@ namespace ollama
             request(const std::string& model,const std::string& prompt,std::vector<message> messages, bool stream=false, const json options=nullptr)
             {
                 json_request["model"] = model;
-                json_request["messages"] = messages;
+                //json_request["messages"] = messages;
                 json_request["stream"] = stream;
             }
             ~request(){};
@@ -407,6 +415,7 @@ class Ollama
     bool send_request(const ollama::request& request, std::function<void(const ollama::response&)> on_receive_response=nullptr)
     {
 
+        return true;
     }
 
     std::string server_url;

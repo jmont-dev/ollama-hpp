@@ -29,6 +29,10 @@ void on_receive_response(const ollama::response& response)
 int main()
 {
 
+    ollama::image image("ollama.png", true);
+    
+    std::cout << image.as_base64_string() << std::endl;
+
     // Optional. By default, the server URL is set to http://localhost:11434. Use this function if you need to point to a different URL.
     ollama::setServerURL("http://localhost:11434");    
 
