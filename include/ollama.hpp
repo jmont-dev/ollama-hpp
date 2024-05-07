@@ -15,6 +15,7 @@
 #include <iostream>
 #include <functional>
 #include <exception>
+#include <initializer_list>
 
 using json = nlohmann::json;
 using base64 = macaron::Base64;
@@ -22,6 +23,15 @@ using base64 = macaron::Base64;
 // Namespace types and classes
 namespace ollama
 {
+
+    class exception : public std::exception {
+    private:
+        std::string message;
+
+    public:
+        exception(const std::string& msg) : message(msg) {}
+        const char* what() const noexcept override { return message.c_str(); }
+    };
 
     class image {
         public:
@@ -33,7 +43,6 @@ namespace ollama
                     valid = false;
                 }
 
-                // Read the entire file into a string
                 std::string file_contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
                 this->base64_sequence = macaron::Base64::Encode(file_contents);
@@ -53,11 +62,37 @@ namespace ollama
 
             bool is_valid(){return valid;}
 
+            operator std::string() const {
+                    return base64_sequence;
+    }
+
         private:
             std::string base64_sequence;
             bool valid;
     };
 
+    class images: public std::vector<std::string> {
+
+        public:
+            images(): std::vector<std::string>(0)
+            {
+
+            }
+            images(std::initializer_list<ollama::image> list) {
+                for (ollama::image value : list) {
+                    this->push_back(value);
+                }
+            }        
+            ~images(){};
+            std::vector<std::string> to_strings()
+            {
+                std::vector<std::string> strings;
+                for (auto it = this->begin(); it != this->end(); ++it)
+                    strings.push_back(*it);
+
+            }
+
+    };
 
     class message {
         public:
@@ -170,14 +205,6 @@ namespace ollama
 
     };
 
-    class exception : public std::exception {
-    private:
-        std::string message;
-
-    public:
-        exception(const std::string& msg) : message(msg) {}
-        const char* what() const noexcept override { return message.c_str(); }
-    };
 }
 
 class Ollama

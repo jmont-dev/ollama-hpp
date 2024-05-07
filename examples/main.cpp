@@ -29,11 +29,10 @@ void on_receive_response(const ollama::response& response)
 int main()
 {
 
-    ollama::image image("llama.jpg", true);
-    
-    //std::cout << image.as_base64_string() << std::endl;
+    ollama::image image("llama.jpg", true);   
+    //std::vector<ollama::image> images = {image};
 
-    std::vector<std::string> images(0); images.push_back(image.as_base64_string());
+    ollama::images images={image};
 
     std::cout << ollama::generate("llava", "What is this an image of?", nullptr,images) << std::endl;
 
