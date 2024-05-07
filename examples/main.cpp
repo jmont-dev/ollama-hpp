@@ -23,7 +23,7 @@ void on_receive_response(const ollama::response& response)
 {   
     std::cout << response.as_simple_string() << std::flush;
 
-    if (response.as_json()[0]["done"]==true) { done.store(true, std::memory_order_relaxed);  std::cout << std::endl;}
+    if (response.as_json()[0]["done"]==true) { done=true;  std::cout << std::endl;}
 }
 
 int main()
@@ -73,7 +73,7 @@ int main()
     std::thread new_thread( [response_callback]{ ollama::generate("llama3", "Why is the sky gray?", response_callback); } );
 
     // Prevent the main thread from exiting while we wait from an asynchronous response.
-    while(!done.load(std::memory_order_relaxed)) { std::this_thread::sleep_for(std::chrono::microseconds(100) ); }
+    while(!done) { std::this_thread::sleep_for(std::chrono::microseconds(100) ); }
     new_thread.join();
 
     // If you don't want to use the static singleton defined in the namespace, you can create an Ollama instance itself.
