@@ -135,7 +135,7 @@ class Ollama
         json request;
         request["model"] = model;
         request["prompt"] = prompt;
-        //if (options) request["options"] = options["options"];
+        if (options!=nullptr) request["options"] = options["options"];
         request["stream"] = false;
 
         std::string request_string = request.dump();
@@ -172,7 +172,7 @@ class Ollama
         json request;
         request["model"] = model;
         request["prompt"] = prompt;
-        //if (options) request["options"] = options["options"];
+        if (options!=nullptr) request["options"] = options["options"];
         request["stream"] = true;
 
         std::string request_string = request.dump();
@@ -207,7 +207,7 @@ class Ollama
         json request;
         request["model"] = model;
         request["prompt"] = prompt;
-        //if (options) request["options"] = options["options"];
+        if (options!=nullptr) request["options"] = options["options"];
         request["stream"] = true;
 
         std::string request_string = request.dump();
