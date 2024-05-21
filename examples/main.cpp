@@ -8,6 +8,8 @@
 #include <chrono>
 #include <atomic>
 
+
+
 std::string output;
 
 std::atomic<bool> done{false};
@@ -26,6 +28,8 @@ void on_receive_response(const ollama::response& response)
     if (response.as_json()[0]["done"]==true) { done=true;  std::cout << std::endl;}
 }
 
+// Install ollama, llama3, and llava first to run this demo
+// ollama pull llama3 llava 
 int main()
 {
 
@@ -80,8 +84,8 @@ int main()
     // You can launch the generation in a thread with a callback to use it asynchronously.
     std::thread new_thread( [response_callback]{ ollama::generate("llama3", "Why is the sky gray?", response_callback); } );
 
-    // Prevent the main thread from exiting while we wait from an asynchronous response.
-    while(!done) { std::this_thread::sleep_for(std::chrono::microseconds(100) ); }
+    // Prevent the main thread from exiting while we wait for an asynchronous response.
+    while (!done) { std::this_thread::sleep_for(std::chrono::microseconds(100) ); }
     new_thread.join();
 
     // If you don't want to use the static singleton defined in the namespace, you can create an Ollama instance itself.

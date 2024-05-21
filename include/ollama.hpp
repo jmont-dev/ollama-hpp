@@ -46,6 +46,8 @@ using base64 = macaron::Base64;
 // Namespace types and classes
 namespace ollama
 {
+    // Change this to false to avoid throwing exceptions within the library.
+    static const bool use_exceptions = true; 
 
     class exception : public std::exception {
     private:
@@ -62,8 +64,8 @@ namespace ollama
             {
                 std::ifstream file(filepath, std::ios::binary);
                 if (!file) {
-                    std::cerr << "Cannot open the file!" << std::endl;
-                    valid = false;
+                    if (ollama::use_exceptions) throw ollama::exception("Unable to open image file from path.");
+                    valid = false; return;
                 }
 
                 std::string file_contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -112,7 +114,8 @@ namespace ollama
                 std::vector<std::string> strings;
                 for (auto it = this->begin(); it != this->end(); ++it)
                     strings.push_back(*it);
-
+                
+                return strings;
             }
 
     };
@@ -215,7 +218,7 @@ namespace ollama
                     json_entries.push_back(message);
                 }
             }
-            catch (...) { json_entries.clear(); return false; }
+            catch (...) { json_entries.clear(); if (ollama::use_exceptions) throw new ollama::exception("Unable to parse JSON string:"+this->json_string); return false; }
 
             return true;
         }
@@ -274,9 +277,8 @@ class Ollama
         }
         else
         {
-            std::stringstream ss; 
-            ss << "No response returned" << res.error();
-            throw new ollama::exception(ss.str());
+            if (ollama::use_exceptions) throw ollama::exception("No response returned from server "+this->server_url+". Error was: "+httplib::to_string( res.error() ));
+            return "";
         }
 
         return response;
@@ -284,7 +286,7 @@ class Ollama
 
 
     // Generate a streaming reply where a user-defined callback function is invoked when each token is received.
-    void generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&, bool)> on_receive_token, json options=nullptr, bool receive_json=false)
+    bool generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&, bool)> on_receive_token, json options=nullptr, bool receive_json=false)
     {
         std::string response="";
 
@@ -313,13 +315,14 @@ class Ollama
 
         };
 
-        if (auto res = this->cli->Post("/api/generate", request_string, "application/json", stream_callback)) {}
-        else {std::cout << "No response returned: " << res.error() << std::endl;}
+        if (auto res = this->cli->Post("/api/generate", request_string, "application/json", stream_callback)) { return true; }
+        else { if (ollama::use_exceptions) throw ollama::exception( "No response returned from server "+this->server_url+". Error was: "+httplib::to_string( res.error() ) ); }
 
+        return false;
     }
 
     // Generate a streaming reply where a user-defined callback function is invoked when each token is received.
-    void generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_token, json options=nullptr)
+    bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_token, json options=nullptr)
     {
         std::string response="";
 
@@ -343,9 +346,10 @@ class Ollama
 
         };
 
-        if (auto res = this->cli->Post("/api/generate", request_string, "application/json", stream_callback)) {}
-        else {std::cout << "No response returned: " << res.error() << std::endl;}
+        if (auto res = this->cli->Post("/api/generate", request_string, "application/json", stream_callback)) { return true; }
+        else { if (ollama::use_exceptions) throw ollama::exception( "No response from server returned at URL"+this->server_url+" Error: "+httplib::to_string( res.error() ) ); } 
 
+        return false;
     }
 
     bool create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
@@ -362,7 +366,7 @@ class Ollama
 
             // Check if the file is open
             if (!file.is_open()) {
-                std::cerr << "Failed to open file.\n";
+                if (ollama::use_exceptions) throw ollama::exception("Failed to open file "+modelFile);
                 return false;
             }
 
@@ -388,7 +392,7 @@ class Ollama
         }
         else
         {
-            std::cout << "No response returned: " << res.error() << std::endl;
+            if (ollama::use_exceptions) throw ollama::exception("No response returned: "+httplib::to_string( res.error() ) );
         }
 
         return false;
@@ -409,17 +413,19 @@ class Ollama
             json response = json::parse(res->body);
             return response["done"];        
         }
+        else
+        { 
+            if (ollama::use_exceptions) throw ollama::exception("No response returned from server when loading model: "+httplib::to_string( res.error() ) ); 
+        }
 
-        // If we didn't get a response from the server indicating the model was created, return false.
+        // If we didn't get a response from the server indicating the model was created, return false.        
         return false;                
     }
 
     bool is_running()
     {
-        std::stringstream response;
         auto res = cli->Get("/");
-        if (res) response << res->body;
-        if (response.str()=="Ollama is running") return true;        
+        if (res) if (res->body=="Ollama is running") return true;
         return false;
     }
 
@@ -437,7 +443,7 @@ class Ollama
         }
         else
         {
-            throw std::runtime_error("Error retrieving version: "+res->status);
+            throw ollama::exception("Error retrieving version: "+res->status);
         }
 
         return version;
@@ -490,14 +496,14 @@ namespace ollama
         return ollama.generate(model, prompt, options, images, return_as_json);
     }
 
-    inline void generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&, bool)> on_receive_token, json options=nullptr, bool return_as_json=false)
+    inline bool generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&, bool)> on_receive_token, json options=nullptr, bool return_as_json=false)
     {
-        ollama.generate(model, prompt, on_receive_token, options, return_as_json);
+        return ollama.generate(model, prompt, on_receive_token, options, return_as_json);
     }
 
-    inline void generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_response, json options=nullptr)
+    inline bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_response, json options=nullptr)
     {
-        ollama.generate(model, prompt, on_receive_response, options);
+        return ollama.generate(model, prompt, on_receive_response, options);
     }
 
     inline bool create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
