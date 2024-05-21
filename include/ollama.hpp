@@ -276,7 +276,9 @@ class Ollama
                 if (return_as_json) response+=res->body;
                 else
                 {
-                    json chunk = json::parse(res->body);        
+                    json chunk = json::parse(res->body);
+                    if (chunk.contains("error")) { if (ollama::use_exceptions) throw ollama::exception("Ollama response returned error: "+chunk["error"].get<std::string>()); return chunk["error"].get<std::string>(); }
+
                     response+=chunk["response"];
                 }
         }

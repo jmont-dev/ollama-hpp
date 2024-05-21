@@ -40,6 +40,18 @@ int main()
 
     std::cout << ollama::generate("llava", "What is this an image of?", nullptr,images) << std::endl;
 
+    // Enable debug logging for raw requests and replies sent to and from the Ollama server.
+    ollama::show_requests(false);
+    ollama::show_replies(false);
+
+    // Functions will throw ollama::exception if invalid parameters are used or an invalid response is received.
+    try { 
+        ollama::generate("Non-existent-model", "Requesting this model will throw an error"); 
+    } 
+    catch(ollama::exception e) { std::cout << e.what() << std::endl; }
+
+    //Alternatively, throwing exceptions can be disabled. In this case, either null strings or false will be returned in the event of an error.
+    //ollama::allow_exceptions(false);
 
     // Optional. By default, the server URL is set to http://localhost:11434. Use this function if you need to point to a different URL.
     ollama::setServerURL("http://localhost:11434");    
