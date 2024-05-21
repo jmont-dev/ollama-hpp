@@ -45,9 +45,14 @@ using base64 = macaron::Base64;
 
 // Namespace types and classes
 namespace ollama
-{
-    // Change this to false to avoid throwing exceptions within the library.
-    static const bool use_exceptions = true; 
+{    
+    static bool use_exceptions = true;    // Change this to false to avoid throwing exceptions within the library.    
+    static bool log_requests = false;      // Log raw requests to the Ollama server. Useful when debugging.       
+    static bool log_replies = false;       // Log raw replies from the Ollama server. Useful when debugging.
+
+    static void allow_exceptions(bool enable) {use_exceptions = enable;}
+    static void show_requests(bool enable) {log_requests = enable;}
+    static void show_replies(bool enable) {log_replies = enable;}
 
     class exception : public std::exception {
     private:
@@ -262,11 +267,11 @@ class Ollama
         if (!images.empty()) request["images"] = images;
 
         std::string request_string = request.dump();
-        std::cout << request_string << std::endl;      
+        if (ollama::log_requests) std::cout << request_string << std::endl;      
 
         if (auto res = this->cli->Post("/api/generate",request_string, "application/json"))
         {
-            std::cout << res->body << std::endl;
+            if (ollama::log_replies) std::cout << res->body << std::endl;
 
                 if (return_as_json) response+=res->body;
                 else
@@ -298,7 +303,7 @@ class Ollama
         request["stream"] = true;
 
         std::string request_string = request.dump();
-        std::cout << request_string << std::endl;
+        if (ollama::log_requests) std::cout << request_string << std::endl;
 
         auto stream_callback = [on_receive_token, receive_json](const char *data, size_t data_length)->bool{
             
@@ -334,7 +339,7 @@ class Ollama
         request["stream"] = true;
 
         std::string request_string = request.dump();
-        std::cout << request_string << std::endl;
+        if (ollama::log_requests) std::cout << request_string << std::endl;
 
         auto stream_callback = [on_receive_token](const char *data, size_t data_length)->bool{
             
@@ -379,13 +384,13 @@ class Ollama
         else request["modelFile"] = modelFile;
 
         std::string request_string = request.dump();
-        std::cout << request_string << std::endl;  
+        if (ollama::log_requests) std::cout << request_string << std::endl;  
 
         std::string response;
 
         if (auto res = this->cli->Post("/api/create",request_string, "application/json"))
         {
-            std::cout << res->body << std::endl;
+            if (ollama::log_replies) std::cout << res->body << std::endl;
 
             json chunk = json::parse(res->body);
             if (chunk["status"]=="success") return true;        
@@ -404,12 +409,12 @@ class Ollama
         json request;
         request["model"] = model;
         std::string request_string = request.dump();
-        std::cout << request_string << std::endl;
+        if (ollama::log_requests) std::cout << request_string << std::endl;
 
         // Send a blank request with the model name to instruct ollama to load the model into memory.
         if (auto res = this->cli->Post("/api/generate", request_string, "application/json"))
         {
-            std::cout << res->body << std::endl;
+            if (ollama::log_replies) std::cout << res->body << std::endl;
             json response = json::parse(res->body);
             return response["done"];        
         }

@@ -75,7 +75,7 @@ int main()
     // Define a callback function to receive a streaming reply from the server. This will allow you to perform an action on receiving each token.
     // Socket communication is blocking so this will still block the main thread.
     std::function<void(const std::string&, bool)> callback = on_receive_token;    
-    ollama::generate("llama3", "Why is the sky red?", callback);
+    //ollama::generate("llama3", "Why is the sky red?", callback);
 
     std::function<void(const ollama::response&)> response_callback = on_receive_response;    
 
