@@ -316,7 +316,7 @@ class Ollama
             // Either pass back the entire json string or the parsed token.
             on_receive_token( (receive_json ? message: response), done);
 
-            return !done;
+            return true;
 
         };
 
