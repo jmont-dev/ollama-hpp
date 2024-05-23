@@ -31,11 +31,19 @@ void on_receive_response(const ollama::response& response)
 int main()
 {
 
+    ollama::show_requests(true);
+    ollama::show_replies(true);
+
+    // Request model info from the Ollama server.
+    json model_info = ollama::show_model_info("mistral:latest");
+    std::cout << "Model template is " << model_info["template"] << std::endl;
+
     // Create a blob on the ollama server using the following digest
-    if ( ollama::create_blob("sha256:29fdb92e57cf0827ded04ae6461b5931d01fa595843f55d36f5b275a52087dd2") ) std::cout << "Blob was created on Ollama server." << std::endl;
+    try { ollama::create_blob("sha256:29fdb92e57cf0827ded04ae6461b5931d01fa595843f55d36f5b275a52087dd2"); std::cout << "Blob was created on Ollama server." << std::endl; }
+    catch( ollama::exception e) { std::cout << "Error when creating blob: " << e.what() << std::endl;} 
 
     // Check if a blob with the following digest exists.
-    if ( ollama::blob_exists("sha256:29fdb92e57cf0827ded04ae6461b5931d01fa595843f55d36f5b275a52087dd2") ) std::cout << "Blob exists on Ollama server." << std::endl;
+    if ( ollama::blob_exists("sha256:29fdb92e57cf0827ded04ae6461b5931d01fa595843f55d36f5b275a52087dd2") ) std::cout << "Blob exists on Ollama server." << std::endl; 
 
     // List the models available locally in the ollama server
     std::vector<std::string> models = ollama::list_models();    

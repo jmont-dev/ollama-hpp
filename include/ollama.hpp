@@ -490,6 +490,29 @@ class Ollama
 
     }
 
+    json show_model_info(const std::string& model)
+    {
+        json request, response;
+        request["name"] = model;
+
+        std::string request_string = request.dump();
+        if (ollama::log_requests) std::cout << request_string << std::endl;
+
+        if (auto res = cli->Post("/api/show/", request_string, "application/json"))
+        {
+            if (ollama::log_replies) std::cout << "Reply was " << res->body << std::endl;
+            try
+            { 
+                response = json::parse(res->body); 
+            }
+            catch(...)
+            { if (ollama::use_exceptions) throw ollama::exception("Received bad response from Ollama server when querying model info."); }           
+        }
+        else { if (ollama::use_exceptions) throw ollama::exception("No response returned from server when querying model info: "+httplib::to_string( res.error() ) );}        
+
+        return response;
+    }
+
     std::string get_version()
     {
         std::string version;
@@ -605,6 +628,11 @@ namespace ollama
     inline bool create_blob(const std::string& digest)
     {
         return ollama.create_blob(digest);
+    }
+
+    inline json show_model_info(const std::string& model)
+    {
+        return ollama.show_model_info(model);
     }
 
     inline void setReadTimeout(const int& seconds)
