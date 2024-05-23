@@ -438,7 +438,7 @@ class Ollama
 
 
 
-    json list_models_json()
+    json list_model_json()
     {
         json models;
         if (auto res = cli->Get("/api/tags"))
@@ -455,7 +455,7 @@ class Ollama
     {
         std::vector<std::string> models;
 
-        json json_response = list_models_json();
+        json json_response = list_model_json();
         
         for (auto& model: json_response["models"])
         {
@@ -463,6 +463,31 @@ class Ollama
         }
 
         return models;
+    }
+
+    bool blob_exists(const std::string& digest)
+    {
+        if (auto res = cli->Head("/api/blobs/"+digest))
+        {
+            if (res->status==httplib::StatusCode::OK_200) return true;
+            if (res->status==httplib::StatusCode::NotFound_404) return false;            
+        }
+        else { if (ollama::use_exceptions) throw ollama::exception("No response returned from server when checking if blob exists: "+httplib::to_string( res.error() ) );}        
+
+        return false;
+    }
+
+    bool create_blob(const std::string& digest)
+    {
+        if (auto res = cli->Post("/api/blobs/"+digest))
+        {
+            if (res->status==httplib::StatusCode::Created_201) return true;
+            if (res->status==httplib::StatusCode::BadRequest_400) { if (ollama::use_exceptions) throw ollama::exception("Received bad request (Code 400) from Ollama server when creating blob."); }            
+        }
+        else { if (ollama::use_exceptions) throw ollama::exception("No response returned from server when creating blob: "+httplib::to_string( res.error() ) );}        
+
+        return false;
+
     }
 
     std::string get_version()
@@ -565,6 +590,21 @@ namespace ollama
     inline std::vector<std::string> list_models()
     {
         return ollama.list_models();
+    }
+
+    inline json list_model_json()
+    {
+        return ollama.list_model_json();
+    }
+
+    inline bool blob_exists(const std::string& digest)
+    {
+        return ollama.blob_exists(digest);
+    }
+
+    inline bool create_blob(const std::string& digest)
+    {
+        return ollama.create_blob(digest);
     }
 
     inline void setReadTimeout(const int& seconds)
