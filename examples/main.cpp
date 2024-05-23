@@ -8,8 +8,6 @@
 #include <chrono>
 #include <atomic>
 
-
-
 std::string output;
 
 std::atomic<bool> done{false};
@@ -33,6 +31,11 @@ void on_receive_response(const ollama::response& response)
 int main()
 {
 
+    // List the models available locally in the ollama server
+    std::vector<std::string> models = ollama::list_models();    
+    std::cout << "These models are locally available: " << std::endl;
+    for (std::string model: models) std::cout << model << std::endl;
+
     ollama::image image("llama.jpg", true);   
     //std::vector<ollama::image> images = {image};
 
@@ -50,7 +53,7 @@ int main()
     } 
     catch(ollama::exception e) { std::cout << e.what() << std::endl; }
 
-    //Alternatively, throwing exceptions can be disabled. In this case, either null strings or false will be returned in the event of an error.
+    //Alternatively, throwing exceptions can be disabled. In this case, either emptry values or false will be returned in the event of an error.
     //ollama::allow_exceptions(false);
 
     // Optional. By default, the server URL is set to http://localhost:11434. Use this function if you need to point to a different URL.

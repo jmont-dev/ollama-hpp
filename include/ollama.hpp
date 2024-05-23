@@ -436,6 +436,35 @@ class Ollama
         return false;
     }
 
+
+
+    json list_models_json()
+    {
+        json models;
+        if (auto res = cli->Get("/api/tags"))
+        {
+            if (ollama::log_replies) std::cout << res->body << std::endl;
+            models = json::parse(res->body);
+        }
+        else { if (ollama::use_exceptions) throw ollama::exception("No response returned from server when querying model list: "+httplib::to_string( res.error() ) );}        
+
+        return models;
+    }
+
+    std::vector<std::string> list_models()
+    {
+        std::vector<std::string> models;
+
+        json json_response = list_models_json();
+        
+        for (auto& model: json_response["models"])
+        {
+            models.push_back(model["name"]);
+        }
+
+        return models;
+    }
+
     std::string get_version()
     {
         std::string version;
@@ -531,6 +560,11 @@ namespace ollama
     inline std::string get_version()
     {
         return ollama.get_version();
+    }
+
+    inline std::vector<std::string> list_models()
+    {
+        return ollama.list_models();
     }
 
     inline void setReadTimeout(const int& seconds)
