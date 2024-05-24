@@ -147,6 +147,9 @@ namespace ollama
     class request: public json {
 
         public:
+
+            enum type{ generation, embedding };
+
             // Create a request for a generation.
             request(const std::string& model,const std::string& prompt, const json& options=nullptr, bool stream=false, const std::vector<std::string>& images=std::vector<std::string>()): json()
             {   
@@ -156,6 +159,8 @@ namespace ollama
 
                 if (options!=nullptr) (*this)["options"] = options["options"];
                 if (!images.empty()) (*this)["images"] = images;
+
+                type = type::generation;
             }
             // Create a request for a chat completion.
             request(const std::string& model,const std::string& prompt,std::vector<message> messages, const json& options=nullptr, bool stream=false): json()
@@ -179,12 +184,14 @@ namespace ollama
                 return request;
             }
 
-        bool valid;
+        request::type type;
     };
 
     class response {
 
         public:
+
+            enum response_type{ generation, embedding };
 
             response(const std::string& json_string)
             {
@@ -192,7 +199,13 @@ namespace ollama
                 try 
                 {
                     json_data = json::parse(json_string); 
-                    if ( json_data.contains("response") ) simple_string=json_data["response"].get<std::string>();
+                    
+                    if (type==generation) 
+                        { if ( json_data.contains("response") ) simple_string=json_data["response"].get<std::string>(); }
+                    else
+                    if (type==embedding) 
+                       { if ( json_data.contains("embedding") ) simple_string=json_data["embedding"].get<std::string>(); }                    
+                    
                     if ( json_data.contains("error") ) error_string =json_data["error"].get<std::string>();
                 }
                 catch(...) { if (ollama::use_exceptions) throw new ollama::exception("Unable to parse JSON string:"+this->json_string); valid = false; }
@@ -236,7 +249,9 @@ namespace ollama
         std::string json_string;
         std::string simple_string;
         std::string error_string;
+
         json json_data;        
+        response_type type;
         bool valid;        
     };
 
