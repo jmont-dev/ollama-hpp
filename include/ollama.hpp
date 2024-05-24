@@ -167,6 +167,18 @@ namespace ollama
             request(): json() {}
             ~request(){};
 
+            static ollama::request embedding(const std::string& name, const std::string& prompt, const json& options=nullptr, const std::string& keep_alive_duration="5m")
+            {
+                ollama::request request;
+
+                request["name"] = name;
+                request["prompt"] = prompt;
+                if (options!=nullptr) request["options"] = options["options"];
+                request["keep_alive"] = keep_alive_duration;
+
+                return request;
+            }
+
         bool valid;
     };
 
@@ -249,7 +261,7 @@ class Ollama
     {
 
         ollama::response response;
-        ollama::request request(model, prompt, options, images, false);
+        ollama::request request(model, prompt, options, false, images);
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;      
@@ -271,15 +283,10 @@ class Ollama
     }
 
     // Generate a streaming reply where a user-defined callback function is invoked when each token is received.
-    bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_token, json options=nullptr)
+    bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_token, json options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
     {
 
-        // Generate the JSON request
-        ollama::request request;
-        request["model"] = model;
-        request["prompt"] = prompt;
-        if (options!=nullptr) request["options"] = options["options"];
-        request["stream"] = true;
+        ollama::request request(model, prompt, options, true, images);
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;
@@ -539,13 +546,8 @@ class Ollama
 
     ollama::response generate_embeddings(const std::string& model, const std::string& prompt, json options=nullptr, const std::string& keep_alive_duration="5m")
     {
-        json request;
-        ollama::response;
-
-        request["name"] = model;
-        request["prompt"] = prompt;
-        if (options!=nullptr) request["options"] = options["options"];
-        request["keep_alive"] = keep_alive_duration;
+        ollama::request request = ollama::request::embedding(model, prompt, options, keep_alive_duration);
+        ollama::response response;
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;
@@ -555,15 +557,14 @@ class Ollama
             if (ollama::log_replies) std::cout << res->body << std::endl;
 
 
-            if (res->status==httplib::StatusCode::OK_200) {response = };
-            if (res->status==httplib::StatusCode::NotFound_404) { if (ollama::use_exceptions) throw ollama::exception("Model not found when trying to push (Code 404)."); return false; }
+            if (res->status==httplib::StatusCode::OK_200) {response = ollama::response(res->body); return response; };
+            if (res->status==httplib::StatusCode::NotFound_404) { if (ollama::use_exceptions) throw ollama::exception("Model not found when trying to push (Code 404)."); }
 
-            response = json::parse(res->body);
-            if ( response.contains("error") ) { if (ollama::use_exceptions) throw ollama::exception( "Error returned from ollama when generating embeddings: "+response["error"].get<std::string>() ); return false; }          
+            if ( response.has_error() ) { if (ollama::use_exceptions) throw ollama::exception( "Error returned from ollama when generating embeddings: "+response.get_error() ); }          
         }
         else { if (ollama::use_exceptions) throw ollama::exception("No response returned from server when pushing model: "+httplib::to_string( res.error() ) );}        
 
-        return false;
+        return response;
     }
 
     std::string get_version()
