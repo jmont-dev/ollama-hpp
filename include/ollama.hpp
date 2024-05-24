@@ -498,7 +498,7 @@ class Ollama
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;
 
-        if (auto res = cli->Post("/api/show/", request_string, "application/json"))
+        if (auto res = cli->Post("/api/show", request_string, "application/json"))
         {
             if (ollama::log_replies) std::cout << "Reply was " << res->body << std::endl;
             try
@@ -511,6 +511,25 @@ class Ollama
         else { if (ollama::use_exceptions) throw ollama::exception("No response returned from server when querying model info: "+httplib::to_string( res.error() ) );}        
 
         return response;
+    }
+
+    bool copy_model(const std::string& source_model, const std::string& dest_model)
+    {
+        json request;
+        request["source"] = source_model;
+        request["destination"] = dest_model;
+
+        std::string request_string = request.dump();
+        if (ollama::log_requests) std::cout << request_string << std::endl;
+        
+        if (auto res = cli->Post("/api/copy", request_string, "application/json"))
+        {
+            if (res->status==httplib::StatusCode::OK_200) return true;
+            if (res->status==httplib::StatusCode::NotFound_404) { if (ollama::use_exceptions) throw ollama::exception("Source model not found when copying model (Code 404)."); }            
+        }
+        else { if (ollama::use_exceptions) throw ollama::exception("No response returned from server when copying model: "+httplib::to_string( res.error() ) );}        
+
+        return false;
     }
 
     std::string get_version()
@@ -633,6 +652,11 @@ namespace ollama
     inline json show_model_info(const std::string& model)
     {
         return ollama.show_model_info(model);
+    }
+
+    inline bool copy_model(const std::string& source_model, const std::string& dest_model)
+    {
+        return ollama.copy_model(source_model, dest_model);
     }
 
     inline void setReadTimeout(const int& seconds)
