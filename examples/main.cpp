@@ -36,7 +36,7 @@ int main()
 
 
     // Push a model a model library with the syntax <namespace>/<model>:<tag>. Note that you must have registered on ollama.ai and added a public key to do this.
-    if ( ollama::push_model("jmont/my_model:latest") ) std::cout << "Model was pushed" << std::endl;
+    try { if ( ollama::push_model("jmont/my_model:latest") ) std::cout << "Model was pushed" << std::endl; }catch(...) {std::cout << "Unable to push model." << std::endl; }
 
     // Pull a model by specifying a model name.
     if ( ollama::pull_model("llama3:8b") ) std::cout << "Model was pulled" << std::endl;
@@ -55,11 +55,8 @@ int main()
     try { ollama::create_blob("sha256:29fdb92e57cf0827ded04ae6461b5931d01fa595843f55d36f5b275a52087dd2"); std::cout << "Blob was created on Ollama server." << std::endl; }
     catch( ollama::exception e) { std::cout << "Error when creating blob: " << e.what() << std::endl;} 
 
-
     // Check if a blob with the following digest exists.
     if ( ollama::blob_exists("sha256:29fdb92e57cf0827ded04ae6461b5931d01fa595843f55d36f5b275a52087dd2") ) std::cout << "Blob exists on Ollama server." << std::endl; 
-
-    sleep(10);
 
     // List the models available locally in the ollama server
     std::vector<std::string> models = ollama::list_models();    

@@ -593,6 +593,30 @@ class Ollama
         return false;
     }
 
+    bool generate_embeddings(const std::string& model, const std::string& prompt, json options=nullptr, const std::string& keep_alive_duration="5m")
+    {
+        json request, response;
+        request["name"] = model;
+        request["prompt"] = prompt;
+        if (options!=nullptr) request["options"] = options["options"];
+        request["keep_alive"] = keep_alive_duration;
+
+        std::string request_string = request.dump();
+        if (ollama::log_requests) std::cout << request_string << std::endl;
+        
+        if (auto res = cli->Post("/api/embeddings", request_string, "application/json"))
+        {
+            if (res->status==httplib::StatusCode::OK_200) return true;
+            if (res->status==httplib::StatusCode::NotFound_404) { if (ollama::use_exceptions) throw ollama::exception("Model not found when trying to push (Code 404)."); return false; }
+
+            response = json::parse(res->body);
+            if ( response.contains("error") ) { if (ollama::use_exceptions) throw ollama::exception( "Error returned from ollama when generating embeddings: "+response["error"].get<std::string>() ); return false; }          
+        }
+        else { if (ollama::use_exceptions) throw ollama::exception("No response returned from server when pushing model: "+httplib::to_string( res.error() ) );}        
+
+        return false;
+    }
+
     std::string get_version()
     {
         std::string version;
@@ -733,6 +757,11 @@ namespace ollama
     inline bool push_model(const std::string& model, bool allow_insecure = false)
     {
         return ollama.push_model(model, allow_insecure);
+    }
+
+    inline bool generate_embeddings(const std::string& model, const std::string& prompt, json options=nullptr, const std::string& keep_alive_duration="5m")
+    {
+        return ollama.generate_embeddings(model, prompt, options, keep_alive_duration);
     }
 
     inline void setReadTimeout(const int& seconds)
