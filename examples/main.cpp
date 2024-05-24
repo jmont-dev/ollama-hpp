@@ -8,16 +8,7 @@
 #include <chrono>
 #include <atomic>
 
-std::string output;
-
 std::atomic<bool> done{false};
-
-void on_receive_token(const std::string& token, bool done)
-{
-    std::cout << token << std::flush;
-    if (done) std::cout << std::endl;
-    output +=token;
-}
 
 void on_receive_response(const ollama::response& response)
 {   
@@ -34,7 +25,7 @@ int main()
     ollama::show_requests(true);
     ollama::show_replies(true);
 
-/*
+
     // Push a model a model library with the syntax <namespace>/<model>:<tag>. Note that you must have registered on ollama.ai and added a public key to do this.
     try { if ( ollama::push_model("jmont/my_model:latest") ) std::cout << "Model was pushed" << std::endl; }catch(...) {std::cout << "Unable to push model." << std::endl; }
 
@@ -113,13 +104,6 @@ int main()
 
     // Perform a simple generation which includes model options.
     std::cout << ollama::generate("llama3", "Why is the sky green?", options) << std::endl;
-
-    // Define a callback function to receive a streaming reply from the server. This will allow you to perform an action on receiving each token.
-    // Socket communication is blocking so this will still block the main thread.
-    std::function<void(const std::string&, bool)> callback = on_receive_token;    
-    ollama::generate("llama3", "Why is the sky red?", callback);
-
-*/
 
     std::function<void(const ollama::response&)> response_callback = on_receive_response;  
     ollama::generate("llama3", "Why is the sky orange?", response_callback);

@@ -148,7 +148,7 @@ namespace ollama
 
         public:
 
-            enum type{ generation, embedding };
+            enum request_type{ generation, embedding };
 
             // Create a request for a generation.
             request(const std::string& model,const std::string& prompt, const json& options=nullptr, bool stream=false, const std::vector<std::string>& images=std::vector<std::string>()): json()
@@ -160,7 +160,7 @@ namespace ollama
                 if (options!=nullptr) (*this)["options"] = options["options"];
                 if (!images.empty()) (*this)["images"] = images;
 
-                type = type::generation;
+                type = request_type::generation;
             }
             // Create a request for a chat completion.
             request(const std::string& model,const std::string& prompt,std::vector<message> messages, const json& options=nullptr, bool stream=false): json()
@@ -184,7 +184,7 @@ namespace ollama
                 return request;
             }
 
-        request::type type;
+        request_type type;
     };
 
     class response {
@@ -644,14 +644,9 @@ namespace ollama
         ollama.setServerURL(server_url);
     }
 
-    inline std::string generate(const std::string& model,const std::string& prompt, json options=nullptr, std::vector<std::string> images=std::vector<std::string>(), bool return_as_json=false)
+    inline ollama::response generate(const std::string& model,const std::string& prompt, json options=nullptr, std::vector<std::string> images=std::vector<std::string>())
     {
-        return ollama.generate(model, prompt, options, images, return_as_json);
-    }
-
-    inline bool generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&, bool)> on_receive_token, json options=nullptr, bool return_as_json=false)
-    {
-        return ollama.generate(model, prompt, on_receive_token, options, return_as_json);
+        return ollama.generate(model, prompt, options, images);
     }
 
     inline bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_response, json options=nullptr)
@@ -661,7 +656,7 @@ namespace ollama
 
     inline bool create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
     {
-        return ollama.create(modelName, modelFile, loadFromFile);
+        return ollama.create_model(modelName, modelFile, loadFromFile);
     }
 
     inline bool is_running()
@@ -724,7 +719,7 @@ namespace ollama
         return ollama.push_model(model, allow_insecure);
     }
 
-    inline bool generate_embeddings(const std::string& model, const std::string& prompt, json options=nullptr, const std::string& keep_alive_duration="5m")
+    inline ollama::response generate_embeddings(const std::string& model, const std::string& prompt, json options=nullptr, const std::string& keep_alive_duration="5m")
     {
         return ollama.generate_embeddings(model, prompt, options, keep_alive_duration);
     }
