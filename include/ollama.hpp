@@ -645,9 +645,9 @@ namespace ollama
         return ollama.generate(model, prompt, options, images);
     }
 
-    inline bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_response, json options=nullptr)
+    inline bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_response, json options=nullptr, std::vector<std::string> images=std::vector<std::string>())
     {
-        return ollama.generate(model, prompt, on_receive_response, options);
+        return ollama.generate(model, prompt, on_receive_response, options, images);
     }
 
     inline bool create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
