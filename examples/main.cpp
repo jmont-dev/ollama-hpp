@@ -39,7 +39,7 @@ int main()
     if ( ollama::copy_model("llama3:8b", "llama3_copy") ) std::cout << "Model was copied" << std::endl;
 
     // Delete a model by specifying a model name.
-    if ( ollama::delete_model("llama3_copy") ) std::cout << "Model was deleted" << std::endl;
+    if ( ollama::delete_model("llama3:8b") ) std::cout << "Model was deleted" << std::endl;
 
     // Request model info from the Ollama server.
     json model_info = ollama::show_model_info("llama3");

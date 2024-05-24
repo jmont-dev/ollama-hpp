@@ -532,15 +532,15 @@ class Ollama
     bool delete_model(const std::string& model)
     {
         json request;
-        request["model"] = model;
+        request["name"] = model;
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;
         
-        if (auto res = cli->Post("/api/delete", request_string, "application/json"))
+        if (auto res = cli->Delete("/api/delete", request_string, "application/json"))
         {
             if (res->status==httplib::StatusCode::OK_200) return true;
-            if (res->status==httplib::StatusCode::NotFound_404) { if (ollama::use_exceptions) throw ollama::exception("Source model not found when copying model (Code 404)."); }            
+            if (res->status==httplib::StatusCode::NotFound_404) { if (ollama::use_exceptions) throw ollama::exception("Model not found when trying to delete (Code 404)."); }            
         }
         else { if (ollama::use_exceptions) throw ollama::exception("No response returned from server when deleting model: "+httplib::to_string( res.error() ) );}        
 
