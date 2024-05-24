@@ -1,3 +1,26 @@
+/* MIT License 
+
+Copyright (c) 2013-2024 Niels Lohmann
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 //     __ _____ _____ _____
 //  __|  |   __|     |   | |  JSON for Modern C++
 // |  |  |__   |  |  | | | |  version 3.11.3
@@ -24764,12 +24787,37 @@ inline void swap(nlohmann::NLOHMANN_BASIC_JSON_TPL& j1, nlohmann::NLOHMANN_BASIC
 
 #endif  // INCLUDE_NLOHMANN_JSON_HPP_
 
+
+
 //
 //  httplib.h
 //
 //  Copyright (c) 2024 Yuji Hirose. All rights reserved.
 //  MIT License
 //
+
+/* The MIT License (MIT)
+
+Copyright (c) 2024 Yuji Hirose (yhirose)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 
 #ifndef CPPHTTPLIB_HTTPLIB_H
 #define CPPHTTPLIB_HTTPLIB_H
@@ -34605,6 +34653,8 @@ inline SSL_CTX *Client::ssl_context() const {
 
 #endif // CPPHTTPLIB_HTTPLIB_H
 
+
+
 #ifndef _MACARON_BASE64_H_
 #define _MACARON_BASE64_H_
 
@@ -34739,6 +34789,8 @@ public:
 } // namespace macaron
 
 #endif /* _MACARON_BASE64_H_ */
+
+
 #ifndef OLLAMA_HPP
 #define OLLAMA_HPP
 
@@ -34765,6 +34817,39 @@ public:
     SOFTWARE.
 */
 
+/*  About this software:
+
+    Ollama is a high-quality REST server and API providing an interface to run
+    language models locally via llama.cpp.
+
+    Ollama was made by Jeffrey Morgan (@jmorganca) and the Ollama team and is 
+    available under the MIT License. To support this project or for more details
+    go to https://github.com/ollama or https://ollama.com/. 
+
+    This library is a header-only C++ integration of the Ollama API providing access
+    to most API features while integrating them with std library classes or popular
+    header-only libraries within the community. The following external libraries are 
+    used:
+*/
+
+/* 
+    httplib is a header-only C++ http/https library.
+    This library was created by Yuji Hirose and is available under the MIT License.
+    For more details visit: https://github.com/yhirose/cpp-httplib
+*/
+
+/* 
+    nlohmnann JSON is a feature-rich header-only C++ JSON implementation.
+    This library was created by Niels Lohmann and is available under the MIT License.
+    For more details visit: https://github.com/nlohmann/json
+*/
+
+/* 
+    Base64.h is a header-only C++ library for encoding and decoding Base64 values.
+    This library was created by tomykaira and is available under the MIT License.
+    For more details visit: 
+    https://gist.github.com/tomykaira/f0fd86b6c73063283afe550bc5d77594
+*/
 
 #include <string>
 #include <fstream>
@@ -34843,7 +34928,7 @@ namespace ollama
             {
 
             }
-            images(std::initializer_list<ollama::image> list) {
+            images(const std::initializer_list<ollama::image>& list) {
                 for (ollama::image value : list) {
                     this->push_back(value);
                 }
@@ -34862,7 +34947,7 @@ namespace ollama
 
     class message {
         public:
-            message(const std::string& role, const std::string content, std::vector<ollama::image> images): role(role), content(content), images(images) {}
+            message(const std::string& role, const std::string& content, const std::vector<ollama::image>& images): role(role), content(content), images(images) {}
             ~message(){};
 
             std::string as_json_string() const
@@ -34896,7 +34981,7 @@ namespace ollama
                 type = message_type::generation;
             }
             // Create a request for a chat completion.
-            request(const std::string& model,const std::string& prompt,std::vector<message> messages, const json& options=nullptr, bool stream=false): json()
+            request(const std::string& model,const std::string& prompt,const std::vector<message>& messages, const json& options=nullptr, bool stream=false): json()
             {
                 (*this)["model"] = model;
                 //(*this)["messages"] = messages;
@@ -34913,9 +34998,14 @@ namespace ollama
                 request["prompt"] = prompt;
                 if (options!=nullptr) request["options"] = options["options"];
                 request["keep_alive"] = keep_alive_duration;
+                
 
                 return request;
             }
+
+            const message_type& get_type() const { return type; }
+
+        private:
 
         message_type type;
     };
@@ -34973,6 +35063,11 @@ namespace ollama
 
             friend std::ostream& operator<<(std::ostream& os, const ollama::response& response) { os << response.as_simple_string(); return os; }
 
+            const message_type& get_type() const
+            {
+                return type;
+            }
+
         private:
 
         std::string json_string;
@@ -35027,7 +35122,7 @@ class Ollama
     }
 
     // Generate a streaming reply where a user-defined callback function is invoked when each token is received.
-    bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_token, json options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
+    bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_token, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
     {
 
         ollama::request request(model, prompt, options, true, images);
@@ -35288,7 +35383,7 @@ class Ollama
         return false;
     }
 
-    ollama::response generate_embeddings(const std::string& model, const std::string& prompt, json options=nullptr, const std::string& keep_alive_duration="5m")
+    ollama::response generate_embeddings(const std::string& model, const std::string& prompt, const json& options=nullptr, const std::string& keep_alive_duration="5m")
     {
         ollama::request request = ollama::request::from_embedding(model, prompt, options, keep_alive_duration);
         ollama::response response;
@@ -35339,12 +35434,12 @@ class Ollama
         this->cli = new httplib::Client(server_url);
     }
 
-    void setReadTimeout(const int& seconds)
+    void setReadTimeout(const int seconds)
     {
         this->cli->set_read_timeout(seconds);
     }
 
-    void setWriteTimeout(const int& seconds)
+    void setWriteTimeout(const int seconds)
     {
         this->cli->set_write_timeout(seconds);
     }
@@ -35373,12 +35468,12 @@ namespace ollama
         ollama.setServerURL(server_url);
     }
 
-    inline ollama::response generate(const std::string& model,const std::string& prompt, json options=nullptr, std::vector<std::string> images=std::vector<std::string>())
+    inline ollama::response generate(const std::string& model,const std::string& prompt,const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
     {
         return ollama.generate(model, prompt, options, images);
     }
 
-    inline bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_response, json options=nullptr, std::vector<std::string> images=std::vector<std::string>())
+    inline bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_response, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
     {
         return ollama.generate(model, prompt, on_receive_response, options, images);
     }
@@ -35448,7 +35543,7 @@ namespace ollama
         return ollama.push_model(model, allow_insecure);
     }
 
-    inline ollama::response generate_embeddings(const std::string& model, const std::string& prompt, json options=nullptr, const std::string& keep_alive_duration="5m")
+    inline ollama::response generate_embeddings(const std::string& model, const std::string& prompt, const json& options=nullptr, const std::string& keep_alive_duration="5m")
     {
         return ollama.generate_embeddings(model, prompt, options, keep_alive_duration);
     }

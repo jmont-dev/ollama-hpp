@@ -4,7 +4,7 @@
 sed -e "47d" -e "54d" -e "62d" "include/ollama.hpp" > "no_includes_ollama.hpp"
 
 # Combine the headers into one file
-{ cat "include/json.hpp"; echo ""; cat "include/httplib.h"; echo ""; cat "include/Base64.h"; echo ""; cat "no_includes_ollama.hpp"; } > "singleheader/ollama.hpp"
+{ cat "include/json.hpp"; echo -e "\n\n"; cat "include/httplib.h"; echo -e "\n\n"; cat "include/Base64.h"; echo -e "\n\n"; cat "no_includes_ollama.hpp"; } > "singleheader/ollama.hpp"
 
 # Clean up
 rm "no_includes_ollama.hpp"
