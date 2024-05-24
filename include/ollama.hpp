@@ -172,7 +172,7 @@ namespace ollama
             request(): json() {}
             ~request(){};
 
-            static ollama::request embedding(const std::string& name, const std::string& prompt, const json& options=nullptr, const std::string& keep_alive_duration="5m")
+            static ollama::request from_embedding(const std::string& name, const std::string& prompt, const json& options=nullptr, const std::string& keep_alive_duration="5m")
             {
                 ollama::request request;
 
@@ -193,7 +193,7 @@ namespace ollama
 
             enum response_type{ generation, embedding };
 
-            response(const std::string& json_string)
+            response(const std::string& json_string, response_type type=generation): type(type)
             {
                 this->json_string = json_string;
                 try 
@@ -561,7 +561,7 @@ class Ollama
 
     ollama::response generate_embeddings(const std::string& model, const std::string& prompt, json options=nullptr, const std::string& keep_alive_duration="5m")
     {
-        ollama::request request = ollama::request::embedding(model, prompt, options, keep_alive_duration);
+        ollama::request request = ollama::request::from_embedding(model, prompt, options, keep_alive_duration);
         ollama::response response;
 
         std::string request_string = request.dump();

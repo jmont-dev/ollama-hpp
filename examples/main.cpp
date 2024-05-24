@@ -25,6 +25,9 @@ int main()
     ollama::show_requests(true);
     ollama::show_replies(true);
 
+    std::cout << ollama::generate("llama3", "Why is the sky blue?") << std::endl;
+
+
 
     // Push a model a model library with the syntax <namespace>/<model>:<tag>. Note that you must have registered on ollama.ai and added a public key to do this.
     try { if ( ollama::push_model("jmont/my_model:latest") ) std::cout << "Model was pushed" << std::endl; }catch(...) {std::cout << "Unable to push model." << std::endl; }
