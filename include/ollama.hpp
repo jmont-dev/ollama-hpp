@@ -24,13 +24,41 @@
     SOFTWARE.
 */
 
-// Used for sending REST requests to the ollama server
+/*  About this software:
+
+    Ollama is a high-quality REST server and API providing an interface to run
+    language models locally via llama.cpp.
+
+    Ollama was made by Jeffrey Morgan (@jmorganca) and the Ollama team and is 
+    available under the MIT License. To support this project or for more details
+    go to https://github.com/ollama or https://ollama.com/. 
+
+    This library is a header-only C++ integration of the Ollama API providing access
+    to most API features while integrating them with std library classes or popular
+    header-only libraries within the community. The following external libraries are 
+    used:
+*/
+
+/* 
+    httplib is a header-only C++ http/https library.
+    This library was created by Yuji Hirose and is available under the MIT License.
+    For more details visit: https://github.com/yhirose/cpp-httplib
+*/
 #include "httplib.h"
 
-//Used for formatting JSON with ollama
+/* 
+    nlohmnann JSON is a feature-rich header-only C++ JSON implementation.
+    This library was created by Niels Lohmann and is available under the MIT License.
+    For more details visit: https://github.com/nlohmann/json
+*/
 #include "json.hpp"
 
-//Used for Base64 formatting of images
+/* 
+    Base64.h is a header-only C++ library for encoding and decoding Base64 values.
+    This library was created by tomykaira and is available under the MIT License.
+    For more details visit: 
+    https://gist.github.com/tomykaira/f0fd86b6c73063283afe550bc5d77594
+*/
 #include "Base64.h"
 
 #include <string>
