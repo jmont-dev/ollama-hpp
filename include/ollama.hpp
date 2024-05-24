@@ -549,7 +549,7 @@ class Ollama
 
     bool pull_model(const std::string& model, bool allow_insecure = false)
     {
-        json request;
+        json request, response;
         request["name"] = model;
         request["insecure"] = allow_insecure;
         request["stream"] = false;
@@ -560,7 +560,10 @@ class Ollama
         if (auto res = cli->Post("/api/pull", request_string, "application/json"))
         {
             if (res->status==httplib::StatusCode::OK_200) return true;
-            if (res->status==httplib::StatusCode::NotFound_404) { if (ollama::use_exceptions) throw ollama::exception("Model not found when trying to pull (Code 404)."); }            
+            if (res->status==httplib::StatusCode::NotFound_404) { if (ollama::use_exceptions) throw ollama::exception("Model not found when trying to pull (Code 404)."); return false; }
+
+            response = json::parse(res->body);
+            if ( response.contains("error") ) { if (ollama::use_exceptions) throw ollama::exception( "Error returned from ollama when pulling model: "+response["error"].get<std::string>() ); return false; }          
         }
         else { if (ollama::use_exceptions) throw ollama::exception("No response returned from server when pulling model: "+httplib::to_string( res.error() ) );}        
 

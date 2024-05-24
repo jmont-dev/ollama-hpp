@@ -35,6 +35,9 @@ int main()
     ollama::show_replies(true);
 
 
+    // Pull a model by specifying a model name.
+    if ( ollama::pull_model("phi") ) std::cout << "Model was pulled" << std::endl;
+
     // Copy a model by specifying a source model and destination model name.
     if ( ollama::copy_model("llama3:8b", "llama3_copy") ) std::cout << "Model was copied" << std::endl;
 
