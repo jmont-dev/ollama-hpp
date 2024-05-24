@@ -547,6 +547,26 @@ class Ollama
         return false;
     }
 
+    bool pull_model(const std::string& model, bool allow_insecure = false)
+    {
+        json request;
+        request["name"] = model;
+        request["insecure"] = allow_insecure;
+        request["stream"] = false;
+
+        std::string request_string = request.dump();
+        if (ollama::log_requests) std::cout << request_string << std::endl;
+        
+        if (auto res = cli->Post("/api/pull", request_string, "application/json"))
+        {
+            if (res->status==httplib::StatusCode::OK_200) return true;
+            if (res->status==httplib::StatusCode::NotFound_404) { if (ollama::use_exceptions) throw ollama::exception("Model not found when trying to pull (Code 404)."); }            
+        }
+        else { if (ollama::use_exceptions) throw ollama::exception("No response returned from server when pulling model: "+httplib::to_string( res.error() ) );}        
+
+        return false;
+    }
+
     std::string get_version()
     {
         std::string version;
@@ -677,6 +697,11 @@ namespace ollama
     inline bool delete_model(const std::string& model)
     {
         return ollama.delete_model(model);
+    }
+
+    inline bool pull_model(const std::string& model, bool allow_insecure = false)
+    {
+        return ollama.pull_model(model, allow_insecure);
     }
 
     inline void setReadTimeout(const int& seconds)
