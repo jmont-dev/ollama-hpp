@@ -25,7 +25,14 @@ int main()
     ollama::show_requests(true);
     ollama::show_replies(true);
 
-    std::cout << ollama::generate("llama3", "Why is the sky blue?") << std::endl;
+    // Exceptions can be dynamically enabled and disabled through this call.
+    // If exceptions are true, ollama::exception will be thrown in the event of errors. If exceptions are false, functions will either return false or empty values.
+    ollama::allow_exceptions(true);
+
+    // Generate embeddings for a model and a prompt.
+    std::cout << ollama::generate_embeddings("llama3:8b", "Why is the sky blue?") << std::endl;
+
+    sleep(10);
 
     // Push a model a model library with the syntax <namespace>/<model>:<tag>. Note that you must have registered on ollama.ai and added a public key to do this.
     try { if ( ollama::push_model("jmont/my_model:latest") ) std::cout << "Model was pushed" << std::endl; }catch(...) {std::cout << "Unable to push model." << std::endl; }
@@ -62,11 +69,13 @@ int main()
 
     std::cout << ollama::generate("llava", "What is this an image of?", nullptr,images) << std::endl;
 
-    // Enable debug logging for raw requests and replies sent to and from the Ollama server.
+    // Enable debug logging for raw requests and replies sent to and from the Ollama server. Not recommended by default but useful when debugging.
     ollama::show_requests(false);
     ollama::show_replies(false);
 
-    // Functions will throw ollama::exception if invalid parameters are used or an invalid response is received.
+    ollama::allow_exceptions(true);
+
+    // If exceptions are enabled, functions will throw ollama::exception if invalid parameters are used or an invalid response is received.
     try { 
         ollama::generate("Non-existent-model", "Requesting this model will throw an error"); 
     } 
