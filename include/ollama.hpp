@@ -175,7 +175,8 @@ namespace ollama
             response(const std::string& json_string)
             {
                 this->json_string = json_string;
-                valid = parseLinesToJSON();
+                try { json_data = json::parse(json_string); }
+                catch(...) { if (ollama::use_exceptions) throw new ollama::exception("Unable to parse JSON string:"+this->json_string); valid = false; }
             }
             
             ~response(){};
@@ -187,48 +188,34 @@ namespace ollama
                 return json_string;
             }
 
-            const std::vector<json> as_json() const
+            const json as_json() const
             {
-                return json_entries;                
+                return json_data;                
             }
 
             const std::string as_simple_string() const
             {
-                std::string response;
-                
-                for (auto&& json_entry: json_entries)
-                {
-                    response+=json_entry["response"];
-                }
+                std::string response="";
 
+                if ( json_data.contains("response") ) response=json_data["response"].get<std::string>();
+            
                 return response;                
             }
 
-        private:
-
-        bool parseLinesToJSON()
-        {
-            try
+            bool has_error() const
             {
-                std::istringstream iss(this->json_string);
-                std::string line;
-
-                while (std::getline(iss, line))
-                {
-                    json message = json::parse(line);
-                    simple_string+=message["response"];        
-                    json_entries.push_back(message);
-                }
+                if ( json_data.contains("error") ) return true;
+                return false;                
             }
-            catch (...) { json_entries.clear(); if (ollama::use_exceptions) throw new ollama::exception("Unable to parse JSON string:"+this->json_string); return false; }
 
-            return true;
-        }
+            friend std::ostream& operator<<(std::ostream& os, const ollama::response& response) { os << response.as_simple_string(); return os; }
+
+        private:
 
         //Optimize by caching values if they have not changed
         std::string json_string;
         std::string simple_string;
-        std::vector<json> json_entries;
+        json json_data;
         bool valid;
 
     };

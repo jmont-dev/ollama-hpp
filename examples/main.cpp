@@ -21,9 +21,9 @@ void on_receive_token(const std::string& token, bool done)
 
 void on_receive_response(const ollama::response& response)
 {   
-    std::cout << response.as_simple_string() << std::flush;
+    std::cout << response << std::flush;
 
-    if (response.as_json()[0]["done"]==true) { done=true;  std::cout << std::endl;}
+    if (response.as_json()["done"]==true) { done=true;  std::cout << std::endl;}
 }
 
 // Install ollama, llama3, and llava first to run this demo
@@ -34,7 +34,7 @@ int main()
     ollama::show_requests(true);
     ollama::show_replies(true);
 
-
+/*
     // Push a model a model library with the syntax <namespace>/<model>:<tag>. Note that you must have registered on ollama.ai and added a public key to do this.
     try { if ( ollama::push_model("jmont/my_model:latest") ) std::cout << "Model was pushed" << std::endl; }catch(...) {std::cout << "Unable to push model." << std::endl; }
 
@@ -118,6 +118,8 @@ int main()
     // Socket communication is blocking so this will still block the main thread.
     std::function<void(const std::string&, bool)> callback = on_receive_token;    
     ollama::generate("llama3", "Why is the sky red?", callback);
+
+*/
 
     std::function<void(const ollama::response&)> response_callback = on_receive_response;  
     ollama::generate("llama3", "Why is the sky orange?", response_callback);
