@@ -1,4 +1,5 @@
 #!/bin/bash
+# Run this script to generate a single-header include for Ollama.hpp that combines the header-only libraries in ./include
 
 # Remove the includes to other libraries in ollama.hpp
 sed -e "47d" -e "54d" -e "62d" "include/ollama.hpp" > "no_includes_ollama.hpp"
