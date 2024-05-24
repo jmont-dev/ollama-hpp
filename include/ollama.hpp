@@ -127,10 +127,7 @@ namespace ollama
 
     class message {
         public:
-            message(const std::string& role, const std::string content, std::vector<ollama::image> images): role(role), content(content), images(images)
-            {
-                
-            }
+            message(const std::string& role, const std::string content, std::vector<ollama::image> images): role(role), content(content), images(images) {}
             ~message(){};
 
             std::string as_json_string() const
@@ -532,6 +529,24 @@ class Ollama
         return false;
     }
 
+    bool delete_model(const std::string& model)
+    {
+        json request;
+        request["model"] = model;
+
+        std::string request_string = request.dump();
+        if (ollama::log_requests) std::cout << request_string << std::endl;
+        
+        if (auto res = cli->Post("/api/delete", request_string, "application/json"))
+        {
+            if (res->status==httplib::StatusCode::OK_200) return true;
+            if (res->status==httplib::StatusCode::NotFound_404) { if (ollama::use_exceptions) throw ollama::exception("Source model not found when copying model (Code 404)."); }            
+        }
+        else { if (ollama::use_exceptions) throw ollama::exception("No response returned from server when deleting model: "+httplib::to_string( res.error() ) );}        
+
+        return false;
+    }
+
     std::string get_version()
     {
         std::string version;
@@ -657,6 +672,11 @@ namespace ollama
     inline bool copy_model(const std::string& source_model, const std::string& dest_model)
     {
         return ollama.copy_model(source_model, dest_model);
+    }
+
+    inline bool delete_model(const std::string& model)
+    {
+        return ollama.delete_model(model);
     }
 
     inline void setReadTimeout(const int& seconds)
