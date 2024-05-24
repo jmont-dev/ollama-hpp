@@ -54,6 +54,8 @@ namespace ollama
     static void show_requests(bool enable) {log_requests = enable;}
     static void show_replies(bool enable) {log_replies = enable;}
 
+    enum message_type { generation, embedding };
+
     class exception : public std::exception {
     private:
         std::string message;
@@ -148,8 +150,6 @@ namespace ollama
 
         public:
 
-            enum request_type{ generation, embedding };
-
             // Create a request for a generation.
             request(const std::string& model,const std::string& prompt, const json& options=nullptr, bool stream=false, const std::vector<std::string>& images=std::vector<std::string>()): json()
             {   
@@ -160,7 +160,7 @@ namespace ollama
                 if (options!=nullptr) (*this)["options"] = options["options"];
                 if (!images.empty()) (*this)["images"] = images;
 
-                type = request_type::generation;
+                type = message_type::generation;
             }
             // Create a request for a chat completion.
             request(const std::string& model,const std::string& prompt,std::vector<message> messages, const json& options=nullptr, bool stream=false): json()
@@ -184,27 +184,23 @@ namespace ollama
                 return request;
             }
 
-        request_type type;
+        message_type type;
     };
 
     class response {
 
         public:
 
-            enum response_type{ generation, embedding };
-
-            response(const std::string& json_string, response_type type=generation): type(type)
+            response(const std::string& json_string, message_type type=generation): type(type)
             {
                 this->json_string = json_string;
                 try 
                 {
                     json_data = json::parse(json_string); 
                     
-                    if (type==generation) 
-                        { if ( json_data.contains("response") ) simple_string=json_data["response"].get<std::string>(); }
+                    if (type==generation && json_data.contains("response")) simple_string=json_data["response"].get<std::string>(); 
                     else
-                    if (type==embedding) 
-                       { if ( json_data.contains("embedding") ) simple_string=json_data["embedding"].get<std::string>(); }                    
+                    if (type==embedding && json_data.contains("embedding")) simple_string=json_data["embedding"].get<std::string>(); 
                     
                     if ( json_data.contains("error") ) error_string =json_data["error"].get<std::string>();
                 }
@@ -251,7 +247,7 @@ namespace ollama
         std::string error_string;
 
         json json_data;        
-        response_type type;
+        message_type type;
         bool valid;        
     };
 
