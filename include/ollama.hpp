@@ -175,49 +175,55 @@ namespace ollama
             response(const std::string& json_string)
             {
                 this->json_string = json_string;
-                try { json_data = json::parse(json_string); }
+                try 
+                {
+                    json_data = json::parse(json_string); 
+                    if ( json_data.contains("response") ) simple_string=json_data["response"].get<std::string>();
+                    if ( json_data.contains("error") ) error_string =json_data["error"].get<std::string>();
+                }
                 catch(...) { if (ollama::use_exceptions) throw new ollama::exception("Unable to parse JSON string:"+this->json_string); valid = false; }
             }
             
+            response() {json_string = ""; valid = false;}
             ~response(){};
 
             bool is_valid() const {return valid;};
 
-            const std::string as_json_string() const
+            const std::string& as_json_string() const
             {
                 return json_string;
             }
 
-            const json as_json() const
+            const json& as_json() const
             {
                 return json_data;                
             }
 
-            const std::string as_simple_string() const
+            const std::string& as_simple_string() const
             {
-                std::string response="";
-
-                if ( json_data.contains("response") ) response=json_data["response"].get<std::string>();
-            
-                return response;                
+                return simple_string;               
             }
 
-            bool has_error() const
+            const bool has_error() const
             {
                 if ( json_data.contains("error") ) return true;
                 return false;                
+            }
+
+            const std::string& get_error() const
+            {
+                return error_string;
             }
 
             friend std::ostream& operator<<(std::ostream& os, const ollama::response& response) { os << response.as_simple_string(); return os; }
 
         private:
 
-        //Optimize by caching values if they have not changed
         std::string json_string;
         std::string simple_string;
-        json json_data;
-        bool valid;
-
+        std::string error_string;
+        json json_data;        
+        bool valid;        
     };
 
 }
@@ -237,10 +243,10 @@ class Ollama
         ~Ollama() {}
 
     // Generate a non-streaming reply as a string.
-    std::string generate(const std::string& model,const std::string& prompt, json options=nullptr, std::vector<std::string> images=std::vector<std::string>(), bool return_as_json=false)
+    ollama::response generate(const std::string& model,const std::string& prompt, json options=nullptr, std::vector<std::string> images=std::vector<std::string>())
     {
 
-        std::string response="";
+        ollama::response response;
 
         // Generate the JSON request
         json request;
@@ -257,19 +263,13 @@ class Ollama
         {
             if (ollama::log_replies) std::cout << res->body << std::endl;
 
-                if (return_as_json) response+=res->body;
-                else
-                {
-                    json chunk = json::parse(res->body);
-                    if (chunk.contains("error")) { if (ollama::use_exceptions) throw ollama::exception("Ollama response returned error: "+chunk["error"].get<std::string>()); return chunk["error"].get<std::string>(); }
-
-                    response+=chunk["response"];
-                }
+            response = ollama::response(res->body);
+            if ( response.has_error() ) { if (ollama::use_exceptions) throw ollama::exception("Ollama response returned error: "+response.get_error() ); }
+           
         }
         else
         {
             if (ollama::use_exceptions) throw ollama::exception("No response returned from server "+this->server_url+". Error was: "+httplib::to_string( res.error() ));
-            return "";
         }
 
         return response;
