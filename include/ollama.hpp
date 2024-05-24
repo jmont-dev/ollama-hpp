@@ -144,28 +144,30 @@ namespace ollama
     };
 
 
-    class request {
+    class request: public json {
 
         public:
             // Create a request for a generation.
-            request(const std::string& model,const std::string& prompt, bool stream=false, const json options=nullptr,const std::vector<std::string> images=std::vector<std::string>())
+            request(const std::string& model,const std::string& prompt, const json& options=nullptr, bool stream=false, const std::vector<std::string>& images=std::vector<std::string>()): json()
             {   
-                json_request["model"] = model;
-                json_request["prompt"] = prompt;
-                json_request["options"] = options;
-                json_request["stream"] = stream;
-                json_request["images"] = images;
+                (*this)["model"] = model;
+                (*this)["prompt"] = prompt;
+                (*this)["stream"] = stream;
+
+                if (options!=nullptr) (*this)["options"] = options["options"];
+                if (!images.empty()) (*this)["images"] = images;
             }
             // Create a request for a chat completion.
-            request(const std::string& model,const std::string& prompt,std::vector<message> messages, bool stream=false, const json options=nullptr)
+            request(const std::string& model,const std::string& prompt,std::vector<message> messages, const json& options=nullptr, bool stream=false): json()
             {
-                json_request["model"] = model;
-                //json_request["messages"] = messages;
-                json_request["stream"] = stream;
+                (*this)["model"] = model;
+                //(*this)["messages"] = messages;
+                (*this)["stream"] = stream;
             }
+            request(): json() {}
             ~request(){};
 
-        json json_request;
+        bool valid;
     };
 
     class response {
@@ -243,18 +245,11 @@ class Ollama
         ~Ollama() {}
 
     // Generate a non-streaming reply as a string.
-    ollama::response generate(const std::string& model,const std::string& prompt, json options=nullptr, std::vector<std::string> images=std::vector<std::string>())
+    ollama::response generate(const std::string& model,const std::string& prompt, json options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
     {
 
         ollama::response response;
-
-        // Generate the JSON request
-        json request;
-        request["model"] = model;
-        request["prompt"] = prompt;
-        if (options!=nullptr) request["options"] = options["options"];
-        request["stream"] = false;
-        if (!images.empty()) request["images"] = images;
+        ollama::request request(model, prompt, options, images, false);
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;      
@@ -275,50 +270,12 @@ class Ollama
         return response;
     }
 
-
-    // Generate a streaming reply where a user-defined callback function is invoked when each token is received.
-    bool generate(const std::string& model,const std::string& prompt, std::function<void(const std::string&, bool)> on_receive_token, json options=nullptr, bool receive_json=false)
-    {
-        std::string response="";
-
-        // Generate the JSON request
-        json request;
-        request["model"] = model;
-        request["prompt"] = prompt;
-        if (options!=nullptr) request["options"] = options["options"];
-        request["stream"] = true;
-
-        std::string request_string = request.dump();
-        if (ollama::log_requests) std::cout << request_string << std::endl;
-
-        auto stream_callback = [on_receive_token, receive_json](const char *data, size_t data_length)->bool{
-            
-            std::string message(data, data_length);
-            json chunk = json::parse(message);        
-            
-            std::string response=chunk["response"];
-            bool done = chunk["done"];
-
-            // Either pass back the entire json string or the parsed token.
-            on_receive_token( (receive_json ? message: response), done);
-
-            return true;
-
-        };
-
-        if (auto res = this->cli->Post("/api/generate", request_string, "application/json", stream_callback)) { return true; }
-        else { if (ollama::use_exceptions) throw ollama::exception( "No response returned from server "+this->server_url+". Error was: "+httplib::to_string( res.error() ) ); }
-
-        return false;
-    }
-
     // Generate a streaming reply where a user-defined callback function is invoked when each token is received.
     bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_token, json options=nullptr)
     {
-        std::string response="";
 
         // Generate the JSON request
-        json request;
+        ollama::request request;
         request["model"] = model;
         request["prompt"] = prompt;
         if (options!=nullptr) request["options"] = options["options"];
@@ -330,11 +287,11 @@ class Ollama
         auto stream_callback = [on_receive_token](const char *data, size_t data_length)->bool{
             
             std::string message(data, data_length);
+            if (ollama::log_replies) std::cout << message << std::endl;
             ollama::response response(message);
             on_receive_token(response);
 
             return true;
-
         };
 
         if (auto res = this->cli->Post("/api/generate", request_string, "application/json", stream_callback)) { return true; }
@@ -343,7 +300,7 @@ class Ollama
         return false;
     }
 
-    bool create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
+    bool create_model(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
     {
 
         // Generate the JSON request
@@ -580,9 +537,11 @@ class Ollama
         return false;
     }
 
-    bool generate_embeddings(const std::string& model, const std::string& prompt, json options=nullptr, const std::string& keep_alive_duration="5m")
+    ollama::response generate_embeddings(const std::string& model, const std::string& prompt, json options=nullptr, const std::string& keep_alive_duration="5m")
     {
-        json request, response;
+        json request;
+        ollama::response;
+
         request["name"] = model;
         request["prompt"] = prompt;
         if (options!=nullptr) request["options"] = options["options"];
@@ -593,7 +552,10 @@ class Ollama
         
         if (auto res = cli->Post("/api/embeddings", request_string, "application/json"))
         {
-            if (res->status==httplib::StatusCode::OK_200) return true;
+            if (ollama::log_replies) std::cout << res->body << std::endl;
+
+
+            if (res->status==httplib::StatusCode::OK_200) {response = };
             if (res->status==httplib::StatusCode::NotFound_404) { if (ollama::use_exceptions) throw ollama::exception("Model not found when trying to push (Code 404)."); return false; }
 
             response = json::parse(res->body);
