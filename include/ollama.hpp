@@ -190,12 +190,18 @@ namespace ollama
 
                 type = message_type::generation;
             }
+
             // Create a request for a chat completion.
-            request(const std::string& model,const std::string& prompt,const std::vector<message>& messages, const json& options=nullptr, bool stream=false): request()
+            request(const std::string& model,const std::string& prompt,const std::vector<message>& messages, const json& options=nullptr, bool stream=false, const std::string& format="json", const std::string& keep_alive_duration="5m"): request()
             {
                 (*this)["model"] = model;
                 //(*this)["messages"] = messages;
                 (*this)["stream"] = stream;
+
+                if (options!=nullptr) (*this)["options"] = options["options"];
+                (*this)["format"] = format;
+                (*this)["keep_alive"] = keep_alive_duration;
+
             }
             request(message_type type): request() { this->type = type; }
 
@@ -355,6 +361,32 @@ class Ollama
         else { if (ollama::use_exceptions) throw ollama::exception( "No response from server returned at URL"+this->server_url+" Error: "+httplib::to_string( res.error() ) ); } 
 
         return false;
+    }
+
+    // Generate a non-streaming reply as a string.
+    ollama::response chat(const std::string& model,const std::string& prompt, const std::vector<ollama::message>& messages, json options=nullptr, const std::string& format="json", const std::string& keep_alive_duration="5m")
+    {
+
+        ollama::response response;
+        ollama::request request(model, prompt, options, false, images);
+
+        std::string request_string = request.dump();
+        if (ollama::log_requests) std::cout << request_string << std::endl;      
+
+        if (auto res = this->cli->Post("/api/chat",request_string, "application/json"))
+        {
+            if (ollama::log_replies) std::cout << res->body << std::endl;
+
+            response = ollama::response(res->body);
+            if ( response.has_error() ) { if (ollama::use_exceptions) throw ollama::exception("Ollama response returned error: "+response.get_error() ); }
+           
+        }
+        else
+        {
+            if (ollama::use_exceptions) throw ollama::exception("No response returned from server "+this->server_url+". Error was: "+httplib::to_string( res.error() ));
+        }
+
+        return response;
     }
 
     bool create_model(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
