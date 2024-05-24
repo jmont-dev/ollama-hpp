@@ -179,7 +179,7 @@ namespace ollama
         public:
 
             // Create a request for a generation.
-            request(const std::string& model,const std::string& prompt, const json& options=nullptr, bool stream=false, const std::vector<std::string>& images=std::vector<std::string>()): json()
+            request(const std::string& model,const std::string& prompt, const json& options=nullptr, bool stream=false, const std::vector<std::string>& images=std::vector<std::string>()): request()
             {   
                 (*this)["model"] = model;
                 (*this)["prompt"] = prompt;
@@ -191,25 +191,26 @@ namespace ollama
                 type = message_type::generation;
             }
             // Create a request for a chat completion.
-            request(const std::string& model,const std::string& prompt,const std::vector<message>& messages, const json& options=nullptr, bool stream=false): json()
+            request(const std::string& model,const std::string& prompt,const std::vector<message>& messages, const json& options=nullptr, bool stream=false): request()
             {
                 (*this)["model"] = model;
                 //(*this)["messages"] = messages;
                 (*this)["stream"] = stream;
             }
+            request(message_type type): request() { this->type = type; }
+
             request(): json() {}
             ~request(){};
 
             static ollama::request from_embedding(const std::string& name, const std::string& prompt, const json& options=nullptr, const std::string& keep_alive_duration="5m")
             {
-                ollama::request request;
+                ollama::request request(message_type::embedding);
 
                 request["name"] = name;
                 request["prompt"] = prompt;
                 if (options!=nullptr) request["options"] = options["options"];
                 request["keep_alive"] = keep_alive_duration;
                 
-
                 return request;
             }
 
