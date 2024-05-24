@@ -35,8 +35,11 @@ int main()
     ollama::show_replies(true);
 
 
+    // Push a model a model library with the syntax <namespace>/<model>:<tag>. Note that you must have registered on ollama.ai and added a public key to do this.
+    if ( ollama::push_model("jmont/my_model:latest") ) std::cout << "Model was pushed" << std::endl;
+
     // Pull a model by specifying a model name.
-    if ( ollama::pull_model("phi") ) std::cout << "Model was pulled" << std::endl;
+    if ( ollama::pull_model("llama3:8b") ) std::cout << "Model was pulled" << std::endl;
 
     // Copy a model by specifying a source model and destination model name.
     if ( ollama::copy_model("llama3:8b", "llama3_copy") ) std::cout << "Model was copied" << std::endl;
