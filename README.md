@@ -34,8 +34,34 @@ The test cases do a good job of providing discrete examples for each of the API 
   - [Server Status](#server-status)
   - [Version](#version)
 
-### Static Singleton vs Instances
-ollama-hpp provides a static singleton by default which allows you to make immediate calls to a server using intelligent defaults. 
+
+### Ollama Class and Singleton
+The `Ollama` class defines the logic required to interface and make calls to an ollama server.
+
+```C++
+Ollama my_server("http://localhost:11434");
+std::cout << my_server.generate("llama3:8b", "Why is the sky blue?") << std::endl;
+```
+
+For convenience, a static singleton of the Ollama class is included in the `ollama` namspace which defaults to http://localhost:11434. Using the static singleton is preferred and will be easier for most people. This allows you to make calls to a default server immediately simply by including the file. All calls to the ollama server are also valid for the singleton:
+
+```C++
+// No object creation required; the static singleton is usable as soon as the file is included, and points to http://localhost:11434.
+ollama::generate("llama3:8b", "Why is the sky blue?") << std::endl;
+```
+
+### Server Defaults
+The `Ollama` object contains a series of intelligent defaults used to communicate with an ollama server. You will not typically have to change these, but can do so if required:
+
+```C++
+// Optional. By default, the server URL is set to http://localhost:11434. Use this function if you need to point to a different URL.
+ollama::setServerURL("http://localhost:11434");    
+
+// Optional. Set the read and write timeouts in seconds for receiving from and sending data to ollama.
+// If you have a large model with a long response time you may need to increase these.
+ollama::setReadTimeout(120);
+ollama::setWriteTimeout(120);
+```
 
 ### Server Status
 Verify that the Ollama server is running with `ollama::is_running()`
