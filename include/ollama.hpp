@@ -82,7 +82,7 @@ namespace ollama
     static void show_requests(bool enable) {log_requests = enable;}
     static void show_replies(bool enable) {log_replies = enable;}
 
-    enum message_type { generation, embedding };
+    enum message_type { generation, chats, embedding };
 
     class exception : public std::exception {
     private:
@@ -155,25 +155,55 @@ namespace ollama
 
     };
 
+
     class message: public json {
         public:
-            message(const std::string& role, const std::string& content, const std::vector<ollama::image>& images): json(), role(role), content(content), images(images) {}
+            message(const std::string& role, const std::string& content, const std::vector<ollama::image>& images): json() { (*this)["role"] = role; (*this)["content"] = content; (*this)["images"] = images; }
+            message(const std::string& role, const std::string& content): json() { (*this)["role"] = role; (*this)["content"] = content; }           
             message() : json() {}
             ~message() {}
 
-            std::string as_json_string() const
-            {
-                std::string json_string;
-
-                return json_string;
-            }
-        private:
-
-        std::string role, content;
-        std::vector<ollama::image> images;
+            std::string as_json_string() const { return this->dump(); }
+            
+            //operator std::string() const { return this->dump(); }// this->dump(); }
+            //operator ollama::messages() const { ollama::messages messages; messages.push_back(*this); return messages; }
+           
 
     };
 
+    class messages: public std::vector<message> {
+
+        public:
+            messages(): std::vector<message>(0) {}            
+            messages(ollama::message message): messages() { this->push_back(message); }
+
+            messages(const std::initializer_list<message>& list) {
+                for (message value : list) {
+                    this->push_back(value);
+                }
+            }        
+            ~messages(){};
+            const std::vector<std::string> to_strings() const
+            {
+                std::vector<std::string> strings;
+                for (auto it = this->begin(); it != this->end(); ++it)
+                    strings.push_back(*it);
+                
+                return strings;
+            }        
+        
+            const std::vector<json> to_json() const 
+            { 
+                std::vector<json> output;  
+                for (auto it = this->begin(); it != this->end(); ++it)
+                    output.push_back(*it);
+                return output;
+            }
+
+            operator std::vector<json>() const {return std::vector<json>();}
+            //operator std::vector<std::string>() const { return this->to_strings(); }    
+        
+    };
 
     class request: public json {
 
@@ -193,17 +223,21 @@ namespace ollama
             }
 
             // Create a request for a chat completion.
-            request(const std::string& model,const std::string& prompt,const std::vector<message>& messages, const json& options=nullptr, bool stream=false, const std::string& format="json", const std::string& keep_alive_duration="5m"): request()
+            request(const std::string& model, const ollama::messages& messages, const json& options=nullptr, bool stream=false, const std::string& format="json", const std::string& keep_alive_duration="5m"): request()
             {
                 (*this)["model"] = model;
-                //(*this)["messages"] = messages;
+                (*this)["messages"] = messages.to_json();
                 (*this)["stream"] = stream;
 
                 if (options!=nullptr) (*this)["options"] = options["options"];
                 (*this)["format"] = format;
                 (*this)["keep_alive"] = keep_alive_duration;
+                std::cout << "This.dumps" << this->dump() << std::endl;
+                type = message_type::chats;
 
             }
+            request(const std::string& model, const ollama::message& message, const json& options=nullptr, bool stream=false, const std::string& format="json", const std::string& keep_alive_duration="5m") :request(model, messages(message), options, stream, format, keep_alive_duration ){}
+           
             request(message_type type): request() { this->type = type; }
 
             request(): json() {}
@@ -241,8 +275,10 @@ namespace ollama
                     
                     if (type==generation && json_data.contains("response")) simple_string=json_data["response"].get<std::string>(); 
                     else
-                    if (type==embedding && json_data.contains("embedding")) simple_string=json_data["embedding"].get<std::string>(); 
-                    
+                    if (type==embedding && json_data.contains("embedding")) simple_string=json_data["embedding"].get<std::string>();
+                    else
+                    if (type==chats && json_data.contains("message")) simple_string=json_data["message"]["content"].get<std::string>();
+                                         
                     if ( json_data.contains("error") ) error_string =json_data["error"].get<std::string>();
                 }
                 catch(...) { if (ollama::use_exceptions) throw new ollama::exception("Unable to parse JSON string:"+this->json_string); valid = false; }
@@ -302,7 +338,6 @@ namespace ollama
 class Ollama
 {
     using json = nlohmann::json;
-    using base64 = macaron::Base64; 
 
     public:
 
@@ -368,11 +403,11 @@ class Ollama
     }
 
     // Generate a non-streaming reply as a string.
-    ollama::response chat(const std::string& model,const std::string& prompt, const std::vector<ollama::message>& messages, json options=nullptr, const std::string& format="json", const std::string& keep_alive_duration="5m")
+    ollama::response chat(const std::string& model, const ollama::messages& messages, json options=nullptr, const std::string& format="json", const std::string& keep_alive_duration="5m")
     {
 
         ollama::response response;
-        ollama::request request(model, prompt, options, false);
+        ollama::request request(model, messages, options, false);
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;      
@@ -381,7 +416,7 @@ class Ollama
         {
             if (ollama::log_replies) std::cout << res->body << std::endl;
 
-            response = ollama::response(res->body);
+            response = ollama::response(res->body, ollama::message_type::chats);
             if ( response.has_error() ) { if (ollama::use_exceptions) throw ollama::exception("Ollama response returned error: "+response.get_error() ); }
            
         }
@@ -723,6 +758,11 @@ namespace ollama
     inline bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_response, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
     {
         return ollama.generate(model, prompt, on_receive_response, options, images);
+    }
+
+    inline ollama::response chat(const std::string& model, const ollama::messages& messages, json options=nullptr, const std::string& format="json", const std::string& keep_alive_duration="5m")
+    {
+        return ollama.chat(model, messages, options, format, keep_alive_duration);
     }
 
     inline bool create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)

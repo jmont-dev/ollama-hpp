@@ -20,7 +20,7 @@ void on_receive_response(const ollama::response& response)
 }
 
 // Install ollama, llama3, and llava first to run this demo
-// ollama pull llama3 llava 
+// ollama pull llama3:8b llava 
 int main()
 {
 
@@ -30,6 +30,18 @@ int main()
     // Exceptions can be dynamically enabled and disabled through this call.
     // If exceptions are true, ollama::exception will be thrown in the event of errors. If exceptions are false, functions will either return false or empty values.
     ollama::allow_exceptions(true);
+
+    ollama::message message1("user", "What are nimbus clouds?");
+    std::cout << ollama::chat("llama3:8b", message1) << std::endl;
+
+    ollama::message message2("assistant", "Nimbus clouds are dense, moisture-filled clouds that produce rain.");
+    ollama::message message3("user", "What are some other kinds of clouds?");
+
+    ollama::messages messages = {message1, message2, message3};
+
+    //ollama::messages messages = {message};
+
+    std::cout << ollama::chat("llama3:8b", messages) << std::endl;
 
     // Generate embeddings for a model and a prompt.
     std::cout << ollama::generate_embeddings("llama3:8b", "Why is the sky blue?") << std::endl;
@@ -46,7 +58,7 @@ int main()
     if ( ollama::copy_model("llama3:8b", "llama3_copy") ) std::cout << "Model was copied" << std::endl;
 
     // Delete a model by specifying a model name.
-    if ( ollama::delete_model("llama3:8b") ) std::cout << "Model was deleted" << std::endl;
+    //if ( ollama::delete_model("llama3:8b") ) std::cout << "Model was deleted" << std::endl;
 
     // Request model info from the Ollama server.
     json model_info = ollama::show_model_info("llama3");
