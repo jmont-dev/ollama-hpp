@@ -43,10 +43,11 @@ Ollama my_server("http://localhost:11434");
 std::cout << my_server.generate("llama3:8b", "Why is the sky blue?") << std::endl;
 ```
 
-For convenience, a static singleton of the Ollama class is included in the `ollama` namspace which defaults to http://localhost:11434. Using the static singleton is preferred and will be easier for most people. This allows you to make calls to a default server immediately simply by including the file. All calls to the ollama server are also valid for the singleton:
+For convenience, a static singleton of the Ollama class is included in the `ollama` namespace which defaults to http://localhost:11434. Using the static singleton is preferred and will be easier for most people. This allows you to make calls to a default server immediately simply by including the file. All calls to the ollama server are also valid for the singleton:
 
 ```C++
-// No object creation required; the static singleton is usable as soon as the file is included, and points to http://localhost:11434.
+// No object creation required; the static singleton is usable as soon as the file is included
+// http://localhost:11434 is the default server location
 ollama::generate("llama3:8b", "Why is the sky blue?") << std::endl;
 ```
 
@@ -54,7 +55,8 @@ ollama::generate("llama3:8b", "Why is the sky blue?") << std::endl;
 The `Ollama` object contains a series of intelligent defaults used to communicate with an ollama server. You will not typically have to change these, but can do so if required:
 
 ```C++
-// Optional. By default, the server URL is set to http://localhost:11434. Use this function if you need to point to a different URL.
+// Optional. By default, the server URL is set to http://localhost:11434. 
+// Use this function if your server resides at a different URL.
 ollama::setServerURL("http://localhost:11434");    
 
 // Optional. Set the read and write timeouts in seconds for receiving from and sending data to ollama.
