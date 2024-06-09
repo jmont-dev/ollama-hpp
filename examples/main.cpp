@@ -82,6 +82,11 @@ int main()
 
     std::cout << ollama::generate("llava", "What do you see in this image?", nullptr,images) << std::endl;
 
+
+    // We can optionally include images with each message. Vision-enabled models will be able to utilize these.
+    ollama::message message_with_image("user", "What do you see in this image?", image);
+    std::cout << ollama::chat("llava", message_with_image) << std::endl;
+
     // Enable debug logging for raw requests and replies sent to and from the Ollama server. Not recommended by default but useful when debugging.
     ollama::show_requests(true);
     ollama::show_replies(false);
