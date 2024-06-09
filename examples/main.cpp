@@ -84,7 +84,7 @@ int main()
     std::cout << ollama::generate("llava", "What is this an image of?", nullptr,images) << std::endl;
 
     // Enable debug logging for raw requests and replies sent to and from the Ollama server. Not recommended by default but useful when debugging.
-    ollama::show_requests(false);
+    ollama::show_requests(true);
     ollama::show_replies(false);
 
     ollama::allow_exceptions(true);
@@ -120,9 +120,12 @@ int main()
     std::cout << ollama::generate("llama3", "Why is the sky blue?") << std::endl;
     
     // Set options to include with use of the model. These should be specified in JSON.
-    json options;
-    options["options"]["top_k"] = 20;
+    //json options;
+    //options["options"]["top_k"] = 20;
     
+    ollama::options options;
+    options["top_k"] = 20;
+
     // You can also pass in the options as a string containing json.
     std::string string_options="{options: {top_k:20} }";
 

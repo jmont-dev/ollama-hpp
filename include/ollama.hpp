@@ -155,6 +155,19 @@ namespace ollama
 
     };
 
+    class options: public json {
+        
+        public:
+            options(): json() { this->emplace( "options", nlohmann::json::object() );  }        
+
+        nlohmann::json& operator[](const std::string& key) 
+        {
+            if ( !this->at("options").contains(key) ) this->at("options").emplace( key, nlohmann::json::object() );                       
+            return this->at("options").at(key); 
+        }
+        const nlohmann::json& operator[](const std::string& key) const { return this->at("options").at(key); }
+
+    };
 
     class message: public json {
         public:
@@ -165,9 +178,7 @@ namespace ollama
 
             std::string as_json_string() const { return this->dump(); }
             
-            //operator std::string() const { return this->dump(); }// this->dump(); }
-            //operator ollama::messages() const { ollama::messages messages; messages.push_back(*this); return messages; }
-           
+            operator std::string() const { return this->as_json_string(); }           
 
     };
 
@@ -201,7 +212,7 @@ namespace ollama
             }
 
             operator std::vector<json>() const {return std::vector<json>();}
-            //operator std::vector<std::string>() const { return this->to_strings(); }    
+            operator std::vector<std::string>() const { return this->to_strings(); }    
         
     };
 
