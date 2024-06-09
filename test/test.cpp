@@ -170,6 +170,23 @@ TEST_SUITE("Ollama Tests") {
         CHECK(response.as_simple_string()!="");
     }
 
+    TEST_CASE("Chat with Streaming Response") {
+
+        ollama::show_requests(true);
+        ollama::show_replies(true);
+
+        streamed_response="";
+        done.store(false);
+
+        std::function<void(const ollama::response&)> response_callback = on_receive_response;  
+        
+        ollama::message message("user", "Why is the sky blue?");       
+        
+        ollama::chat("llama3:8b", message, response_callback, options);
+
+        CHECK(streamed_response!="");
+    }
+
     TEST_CASE("Generation with Image") {
 
         ollama::show_requests(false);
