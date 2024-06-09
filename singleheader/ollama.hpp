@@ -35243,6 +35243,32 @@ class Ollama
         return response;
     }
 
+    bool chat(const std::string& model, const ollama::messages& messages, std::function<void(const ollama::response&)> on_receive_token, const json& options=nullptr, const std::string& format="json", const std::string& keep_alive_duration="5m")
+    {
+
+        ollama::response response;
+        ollama::request request(model, messages, options, true, format, keep_alive_duration);
+
+        std::string request_string = request.dump();
+        if (ollama::log_requests) std::cout << request_string << std::endl;      
+
+        auto stream_callback = [on_receive_token](const char *data, size_t data_length)->bool{
+            
+            std::string message(data, data_length);
+            if (ollama::log_replies) std::cout << message << std::endl;
+            ollama::response response(message, ollama::message_type::chat);
+            if ( response.has_error() ) { if (ollama::use_exceptions) throw ollama::exception("Ollama response returned error: "+response.get_error() ); }
+            on_receive_token(response);
+
+            return true;
+        };
+
+        if (auto res = this->cli->Post("/api/chat", request_string, "application/json", stream_callback)) { return true; }
+        else { if (ollama::use_exceptions) throw ollama::exception( "No response from server returned at URL"+this->server_url+" Error: "+httplib::to_string( res.error() ) ); }
+
+        return false;
+    }
+
     bool create_model(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
     {
 
@@ -35576,6 +35602,11 @@ namespace ollama
     inline ollama::response chat(const std::string& model, const ollama::messages& messages, const json& options=nullptr, const std::string& format="json", const std::string& keep_alive_duration="5m")
     {
         return ollama.chat(model, messages, options, format, keep_alive_duration);
+    }
+
+    inline bool chat(const std::string& model, const ollama::messages& messages, std::function<void(const ollama::response&)> on_receive_response, const json& options=nullptr, const std::string& format="json", const std::string& keep_alive_duration="5m")
+    {
+        return ollama.chat(model, messages, on_receive_response, options, format, keep_alive_duration);
     }
 
     inline bool create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
