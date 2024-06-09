@@ -34858,12 +34858,12 @@ public:
 #include <exception>
 #include <initializer_list>
 
-using json = nlohmann::json;
-using base64 = macaron::Base64;
-
 // Namespace types and classes
 namespace ollama
-{    
+{
+    using json = nlohmann::json;
+    using base64 = macaron::Base64;    
+
     static bool use_exceptions = true;    // Change this to false to avoid throwing exceptions within the library.    
     static bool log_requests = false;      // Log raw requests to the Ollama server. Useful when debugging.       
     static bool log_replies = false;       // Log raw replies from the Ollama server. Useful when debugging.
@@ -34872,7 +34872,7 @@ namespace ollama
     static void show_requests(bool enable) {log_requests = enable;}
     static void show_replies(bool enable) {log_replies = enable;}
 
-    enum message_type { generation, embedding };
+    enum class message_type { generation, chat, embedding };
 
     class exception : public std::exception {
     private:
@@ -34885,25 +34885,30 @@ namespace ollama
 
     class image {
         public:
-            image(const std::string& filepath, bool loadFromFile=true)
-            {
-                std::ifstream file(filepath, std::ios::binary);
-                if (!file) {
-                    if (ollama::use_exceptions) throw ollama::exception("Unable to open image file from path.");
-                    valid = false; return;
-                }
-
-                std::string file_contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
-                this->base64_sequence = macaron::Base64::Encode(file_contents);
-                valid = true;
-
-            }
-            image(const std::string base64_sequence) 
+            image(const std::string base64_sequence, bool valid = true) 
             {
                 this->base64_sequence = base64_sequence;
             }
             ~image(){};
+
+            static image from_file(const std::string& filepath)
+            {
+                bool valid = true;
+                std::ifstream file(filepath, std::ios::binary);
+                if (!file) {
+                    if (ollama::use_exceptions) throw ollama::exception("Unable to open image file from path.");
+                    valid = false; return image("", valid);
+                }
+
+                std::string file_contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+                return image(macaron::Base64::Encode(file_contents), valid);
+            }
+
+            static image from_base64_string(const std::string& base64_string)
+            {
+                return image(base64_string);
+            }
 
             const std::string as_base64_string() const
             {
@@ -34945,31 +34950,76 @@ namespace ollama
 
     };
 
-    class message {
+    class options: public json {
+        
         public:
-            message(const std::string& role, const std::string& content, const std::vector<ollama::image>& images): role(role), content(content), images(images) {}
-            ~message(){};
+            options(): json() { this->emplace( "options", nlohmann::json::object() );  }        
 
-            std::string as_json_string() const
-            {
-                std::string json_string;
+        nlohmann::json& operator[](const std::string& key) 
+        {
+            if ( !this->at("options").contains(key) ) this->at("options").emplace( key, nlohmann::json::object() );                       
+            return this->at("options").at(key); 
+        }
+        nlohmann::json& operator[](const char* key) { return this->operator[](std::string(key)); };
 
-                return json_string;
-            }
-        private:
-
-        std::string role, content;
-        std::vector<ollama::image> images;
+        const nlohmann::json& operator[](const std::string& key) const { return this->at("options").at(key); }
+        const nlohmann::json& operator[](const char* key) const { return this->operator[](std::string(key)); };
 
     };
 
+    class message: public json {
+        public:
+            message(const std::string& role, const std::string& content, const std::vector<ollama::image>& images): json() { (*this)["role"] = role; (*this)["content"] = content; (*this)["images"] = images; }
+            message(const std::string& role, const std::string& content): json() { (*this)["role"] = role; (*this)["content"] = content; }           
+            message() : json() {}
+            ~message() {}
+
+            std::string as_json_string() const { return this->dump(); }
+            
+            operator std::string() const { return this->as_json_string(); }           
+
+    };
+
+    class messages: public std::vector<message> {
+
+        public:
+            messages(): std::vector<message>(0) {}            
+            messages(ollama::message message): messages() { this->push_back(message); }
+
+            messages(const std::initializer_list<message>& list) {
+                for (message value : list) {
+                    this->push_back(value);
+                }
+            }        
+            ~messages(){};
+            const std::vector<std::string> to_strings() const
+            {
+                std::vector<std::string> strings;
+                for (auto it = this->begin(); it != this->end(); ++it)
+                    strings.push_back(*it);
+                
+                return strings;
+            }        
+        
+            const std::vector<json> to_json() const 
+            { 
+                std::vector<json> output;  
+                for (auto it = this->begin(); it != this->end(); ++it)
+                    output.push_back(*it);
+                return output;
+            }
+
+            operator std::vector<json>() const {return std::vector<json>();}
+            operator std::vector<std::string>() const { return this->to_strings(); }    
+        
+    };
 
     class request: public json {
 
         public:
 
             // Create a request for a generation.
-            request(const std::string& model,const std::string& prompt, const json& options=nullptr, bool stream=false, const std::vector<std::string>& images=std::vector<std::string>()): json()
+            request(const std::string& model,const std::string& prompt, const json& options=nullptr, bool stream=false, const std::vector<std::string>& images=std::vector<std::string>()): request()
             {   
                 (*this)["model"] = model;
                 (*this)["prompt"] = prompt;
@@ -34980,26 +35030,36 @@ namespace ollama
 
                 type = message_type::generation;
             }
+
             // Create a request for a chat completion.
-            request(const std::string& model,const std::string& prompt,const std::vector<message>& messages, const json& options=nullptr, bool stream=false): json()
+            request(const std::string& model, const ollama::messages& messages, const json& options=nullptr, bool stream=false, const std::string& format="json", const std::string& keep_alive_duration="5m"): request()
             {
                 (*this)["model"] = model;
-                //(*this)["messages"] = messages;
+                (*this)["messages"] = messages.to_json();
                 (*this)["stream"] = stream;
+
+                if (options!=nullptr) (*this)["options"] = options["options"];
+                (*this)["format"] = format;
+                (*this)["keep_alive"] = keep_alive_duration;
+                type = message_type::chat;
+
             }
+            request(const std::string& model, const ollama::message& message, const json& options=nullptr, bool stream=false, const std::string& format="json", const std::string& keep_alive_duration="5m") :request(model, messages(message), options, stream, format, keep_alive_duration ){}
+           
+            request(message_type type): request() { this->type = type; }
+
             request(): json() {}
             ~request(){};
 
             static ollama::request from_embedding(const std::string& name, const std::string& prompt, const json& options=nullptr, const std::string& keep_alive_duration="5m")
             {
-                ollama::request request;
+                ollama::request request(message_type::embedding);
 
                 request["name"] = name;
                 request["prompt"] = prompt;
                 if (options!=nullptr) request["options"] = options["options"];
                 request["keep_alive"] = keep_alive_duration;
                 
-
                 return request;
             }
 
@@ -35014,17 +35074,19 @@ namespace ollama
 
         public:
 
-            response(const std::string& json_string, message_type type=generation): type(type)
+            response(const std::string& json_string, message_type type=message_type::generation): type(type)
             {
                 this->json_string = json_string;
                 try 
                 {
                     json_data = json::parse(json_string); 
                     
-                    if (type==generation && json_data.contains("response")) simple_string=json_data["response"].get<std::string>(); 
+                    if (type==message_type::generation && json_data.contains("response")) simple_string=json_data["response"].get<std::string>(); 
                     else
-                    if (type==embedding && json_data.contains("embedding")) simple_string=json_data["embedding"].get<std::string>(); 
-                    
+                    if (type==message_type::embedding && json_data.contains("embedding")) simple_string=json_data["embedding"].get<std::string>();
+                    else
+                    if (type==message_type::chat && json_data.contains("message")) simple_string=json_data["message"]["content"].get<std::string>();
+                                         
                     if ( json_data.contains("error") ) error_string =json_data["error"].get<std::string>();
                 }
                 catch(...) { if (ollama::use_exceptions) throw new ollama::exception("Unable to parse JSON string:"+this->json_string); valid = false; }
@@ -35083,6 +35145,8 @@ namespace ollama
 
 class Ollama
 {
+    using json = nlohmann::json;
+
     public:
 
         Ollama(const std::string& url)
@@ -35144,6 +35208,32 @@ class Ollama
         else { if (ollama::use_exceptions) throw ollama::exception( "No response from server returned at URL"+this->server_url+" Error: "+httplib::to_string( res.error() ) ); } 
 
         return false;
+    }
+
+    // Generate a non-streaming reply as a string.
+    ollama::response chat(const std::string& model, const ollama::messages& messages, json options=nullptr, const std::string& format="json", const std::string& keep_alive_duration="5m")
+    {
+
+        ollama::response response;
+        ollama::request request(model, messages, options, false);
+
+        std::string request_string = request.dump();
+        if (ollama::log_requests) std::cout << request_string << std::endl;      
+
+        if (auto res = this->cli->Post("/api/chat",request_string, "application/json"))
+        {
+            if (ollama::log_replies) std::cout << res->body << std::endl;
+
+            response = ollama::response(res->body, ollama::message_type::chat);
+            if ( response.has_error() ) { if (ollama::use_exceptions) throw ollama::exception("Ollama response returned error: "+response.get_error() ); }
+           
+        }
+        else
+        {
+            if (ollama::use_exceptions) throw ollama::exception("No response returned from server "+this->server_url+". Error was: "+httplib::to_string( res.error() ));
+        }
+
+        return response;
     }
 
     bool create_model(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
@@ -35459,7 +35549,7 @@ class Ollama
 
 // Functions associated with Ollama singleton
 namespace ollama
-{
+{    
     // Use directly from the namespace as a singleton
     static Ollama ollama;
     
@@ -35476,6 +35566,11 @@ namespace ollama
     inline bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_response, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
     {
         return ollama.generate(model, prompt, on_receive_response, options, images);
+    }
+
+    inline ollama::response chat(const std::string& model, const ollama::messages& messages, json options=nullptr, const std::string& format="json", const std::string& keep_alive_duration="5m")
+    {
+        return ollama.chat(model, messages, options, format, keep_alive_duration);
     }
 
     inline bool create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
