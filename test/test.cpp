@@ -163,7 +163,7 @@ TEST_SUITE("Ollama Tests") {
 
         ollama::messages messages = {message1, message2, message3};
 
-        ollama::response response = ollama::chat("mistral", messages, options);
+        ollama::response response = ollama::chat("llama3:8b", messages, options);
 
         std::string expected_response = "";
 
