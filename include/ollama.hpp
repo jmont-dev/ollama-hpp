@@ -232,7 +232,6 @@ namespace ollama
                 if (options!=nullptr) (*this)["options"] = options["options"];
                 (*this)["format"] = format;
                 (*this)["keep_alive"] = keep_alive_duration;
-                std::cout << "This.dumps" << this->dump() << std::endl;
                 type = message_type::chats;
 
             }
