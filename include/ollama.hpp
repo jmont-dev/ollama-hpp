@@ -68,12 +68,12 @@
 #include <exception>
 #include <initializer_list>
 
-using json = nlohmann::json;
-using base64 = macaron::Base64;
-
 // Namespace types and classes
 namespace ollama
-{    
+{
+    using json = nlohmann::json;
+    using base64 = macaron::Base64;    
+
     static bool use_exceptions = true;    // Change this to false to avoid throwing exceptions within the library.    
     static bool log_requests = false;      // Log raw requests to the Ollama server. Useful when debugging.       
     static bool log_replies = false;       // Log raw replies from the Ollama server. Useful when debugging.
@@ -155,10 +155,11 @@ namespace ollama
 
     };
 
-    class message {
+    class message: public json {
         public:
-            message(const std::string& role, const std::string& content, const std::vector<ollama::image>& images): role(role), content(content), images(images) {}
-            ~message(){};
+            message(const std::string& role, const std::string& content, const std::vector<ollama::image>& images): json(), role(role), content(content), images(images) {}
+            message() : json() {}
+            ~message() {}
 
             std::string as_json_string() const
             {
@@ -300,6 +301,9 @@ namespace ollama
 
 class Ollama
 {
+    using json = nlohmann::json;
+    using base64 = macaron::Base64; 
+
     public:
 
         Ollama(const std::string& url)
@@ -368,7 +372,7 @@ class Ollama
     {
 
         ollama::response response;
-        ollama::request request(model, prompt, options, false, images);
+        ollama::request request(model, prompt, options, false);
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;      
@@ -702,7 +706,7 @@ class Ollama
 
 // Functions associated with Ollama singleton
 namespace ollama
-{
+{    
     // Use directly from the namespace as a singleton
     static Ollama ollama;
     

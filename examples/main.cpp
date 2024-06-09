@@ -8,6 +8,8 @@
 #include <chrono>
 #include <atomic>
 
+using json = nlohmann::json;
+
 std::atomic<bool> done{false};
 
 void on_receive_response(const ollama::response& response)
