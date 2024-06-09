@@ -34917,9 +34917,8 @@ namespace ollama
 
             bool is_valid(){return valid;}
 
-            operator std::string() const {
-                    return base64_sequence;
-    }
+            operator std::string() const { return base64_sequence; }
+            operator std::vector<ollama::image>() const { std::vector<ollama::image> images; images.push_back(*this); return images; }
 
         private:
             std::string base64_sequence;
@@ -35044,6 +35043,7 @@ namespace ollama
                 type = message_type::chat;
 
             }
+            // Request for a chat completion with a single message
             request(const std::string& model, const ollama::message& message, const json& options=nullptr, bool stream=false, const std::string& format="json", const std::string& keep_alive_duration="5m") :request(model, messages(message), options, stream, format, keep_alive_duration ){}
            
             request(message_type type): request() { this->type = type; }
@@ -35055,7 +35055,7 @@ namespace ollama
             {
                 ollama::request request(message_type::embedding);
 
-                request["name"] = name;
+                request["model"] = name;
                 request["prompt"] = prompt;
                 if (options!=nullptr) request["options"] = options["options"];
                 request["keep_alive"] = keep_alive_duration;
@@ -35129,6 +35129,11 @@ namespace ollama
             {
                 return type;
             }
+
+            //operator std::string() const { return this->as_simple_string(); }
+            operator std::__cxx11::basic_string<char>() const { return this->as_simple_string(); }
+            //const operator std::string() const { return this->as_simple_string(); }           
+
 
         private:
 
@@ -35215,7 +35220,7 @@ class Ollama
     {
 
         ollama::response response;
-        ollama::request request(model, messages, options, false);
+        ollama::request request(model, messages, options, false, format, keep_alive_duration);
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;      
@@ -35312,8 +35317,6 @@ class Ollama
         if (res) if (res->body=="Ollama is running") return true;
         return false;
     }
-
-
 
     json list_model_json()
     {
