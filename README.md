@@ -10,7 +10,7 @@ std::cout << ollama::generate("llama3:8b", "Why is the sky blue?") << std::endl
 ```
 
 ## Single-header vs Separate Headers
-For convenience, ollama-hpp includes a single-header version of the library in `singleheader/ollama.hpp` which bundles the core ollama.hpp code with single-header versions of nlohmann json, httplib, and base64.h. Each of these libraries is available under the MIT license.
+For convenience, ollama-hpp includes a single-header version of the library in `singleheader/ollama.hpp` which bundles the core ollama.hpp code with single-header versions of nlohmann json, httplib, and base64.h. Each of these libraries is available under the MIT license and their respective licenses are included.
 The single-header include can be regenerated from these standalone files by running `./make_single_header.sh`
 
 If you prefer to include the headers for these libraries separately, you can do so by including the standard header located in `include/ollama.hpp`. 
