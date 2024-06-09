@@ -32,14 +32,12 @@ int main()
     ollama::allow_exceptions(true);
 
     ollama::message message1("user", "What are nimbus clouds?");
-    std::cout << ollama::chat("llama3:8b", message1) << std::endl;
-
     ollama::message message2("assistant", "Nimbus clouds are dense, moisture-filled clouds that produce rain.");
     ollama::message message3("user", "What are some other kinds of clouds?");
 
-    ollama::messages messages = {message1, message2, message3};
+    std::cout << ollama::chat("llama3:8b", message1) << std::endl;
 
-    //ollama::messages messages = {message};
+    ollama::messages messages = {message1, message2, message3};
 
     std::cout << ollama::chat("llama3:8b", messages) << std::endl;
 
@@ -78,11 +76,11 @@ int main()
 
     ollama::image image = ollama::image::from_file("llama.jpg");
 
-    //ollama::image image2 = ollama::image::from_base64_string("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mNkYPhfz0AEYBxVSF+FAP5FDvcfRYWgAAAAAElFTkSuQmCC");
+    ollama::image base64_image = ollama::image::from_base64_string("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mNkYPhfz0AEYBxVSF+FAP5FDvcfRYWgAAAAAElFTkSuQmCC");
 
     ollama::images images={image};
 
-    std::cout << ollama::generate("llava", "What is this an image of?", nullptr,images) << std::endl;
+    std::cout << ollama::generate("llava", "What do you see in this image?", nullptr,images) << std::endl;
 
     // Enable debug logging for raw requests and replies sent to and from the Ollama server. Not recommended by default but useful when debugging.
     ollama::show_requests(true);

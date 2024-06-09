@@ -82,7 +82,7 @@ namespace ollama
     static void show_requests(bool enable) {log_requests = enable;}
     static void show_replies(bool enable) {log_replies = enable;}
 
-    enum message_type { generation, chats, embedding };
+    enum class message_type { generation, chat, embedding };
 
     class exception : public std::exception {
     private:
@@ -251,7 +251,7 @@ namespace ollama
                 if (options!=nullptr) (*this)["options"] = options["options"];
                 (*this)["format"] = format;
                 (*this)["keep_alive"] = keep_alive_duration;
-                type = message_type::chats;
+                type = message_type::chat;
 
             }
             request(const std::string& model, const ollama::message& message, const json& options=nullptr, bool stream=false, const std::string& format="json", const std::string& keep_alive_duration="5m") :request(model, messages(message), options, stream, format, keep_alive_duration ){}
@@ -284,18 +284,18 @@ namespace ollama
 
         public:
 
-            response(const std::string& json_string, message_type type=generation): type(type)
+            response(const std::string& json_string, message_type type=message_type::generation): type(type)
             {
                 this->json_string = json_string;
                 try 
                 {
                     json_data = json::parse(json_string); 
                     
-                    if (type==generation && json_data.contains("response")) simple_string=json_data["response"].get<std::string>(); 
+                    if (type==message_type::generation && json_data.contains("response")) simple_string=json_data["response"].get<std::string>(); 
                     else
-                    if (type==embedding && json_data.contains("embedding")) simple_string=json_data["embedding"].get<std::string>();
+                    if (type==message_type::embedding && json_data.contains("embedding")) simple_string=json_data["embedding"].get<std::string>();
                     else
-                    if (type==chats && json_data.contains("message")) simple_string=json_data["message"]["content"].get<std::string>();
+                    if (type==message_type::chat && json_data.contains("message")) simple_string=json_data["message"]["content"].get<std::string>();
                                          
                     if ( json_data.contains("error") ) error_string =json_data["error"].get<std::string>();
                 }
@@ -434,7 +434,7 @@ class Ollama
         {
             if (ollama::log_replies) std::cout << res->body << std::endl;
 
-            response = ollama::response(res->body, ollama::message_type::chats);
+            response = ollama::response(res->body, ollama::message_type::chat);
             if ( response.has_error() ) { if (ollama::use_exceptions) throw ollama::exception("Ollama response returned error: "+response.get_error() ); }
            
         }
