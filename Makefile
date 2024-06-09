@@ -1,5 +1,9 @@
+all: examples test
 examples: examples/main.cpp
 	mkdir -p build
-	g++ examples/main.cpp -Iinclude -o build/ollama-test -std=c++11 -pthread -latomic
+	g++ examples/main.cpp -Iinclude -o build/examples -std=c++11 -pthread -latomic
+test: test/test.cpp
+	mkdir -p build
+	g++ test/test.cpp -Isingleheader -Itest -o build/test -std=c++11 -pthread -latomic	
 clean:
 	rm -rf build
