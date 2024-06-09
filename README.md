@@ -26,13 +26,13 @@ To run the examples and test cases, use:
 `build/test` <br>
 `build/examples`
 
-- [Full API](#full-api)
-  - [Server Status](#server-status)
-  - [Version](#version)
-
 ## Full API
 
 The test cases do a good job of providing discrete examples for each of the API features supported. I recommend reviewing these first in `test/test.cpp` to understand what the library and Ollama API provide.
+
+- [Full API](#full-api)
+  - [Server Status](#server-status)
+  - [Version](#version)
 
 ### Static Singleton vs Instances
 ollama-hpp provides a static singleton by default which allows you to make immediate calls to a server using intelligent defaults. 
