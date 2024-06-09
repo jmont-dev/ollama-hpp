@@ -23,6 +23,8 @@ TEST_SUITE("Ollama Tests") {
         options["seed"] = 1;
         options["temperature"] = 0;
         options["num_predict"] = 18;
+
+        CHECK(true);
     }
 
     TEST_CASE("Check if Ollama is Running") {
@@ -33,6 +35,19 @@ TEST_SUITE("Ollama Tests") {
     TEST_CASE("Get Version") {
 
         CHECK( ollama::get_version()!="" );
+    }
+
+    TEST_CASE("Set Server Parameters") {
+
+        // Optional. By default, the server URL is set to http://localhost:11434. Use this function if you need to point to a different URL.
+        ollama::setServerURL("http://localhost:11434");    
+
+        // Optional. Set the read and write timeouts in seconds for receiving from and sending data to ollama.
+        // If you have a large model with a long response time you may need to increase these.
+        ollama::setReadTimeout(120);
+        ollama::setWriteTimeout(120);
+
+        CHECK(true);
     }
 
     TEST_CASE("Load Model") {
