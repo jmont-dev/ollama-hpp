@@ -76,8 +76,9 @@ int main()
     std::cout << "These models are locally available: " << std::endl;
     for (std::string model: models) std::cout << model << std::endl;
 
-    ollama::image image("llama.jpg", true);   
-    //std::vector<ollama::image> images = {image};
+    ollama::image image = ollama::image::from_file("llama.jpg");
+
+    //ollama::image image2 = ollama::image::from_base64_string("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mNkYPhfz0AEYBxVSF+FAP5FDvcfRYWgAAAAAElFTkSuQmCC");
 
     ollama::images images={image};
 

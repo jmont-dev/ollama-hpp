@@ -95,25 +95,30 @@ namespace ollama
 
     class image {
         public:
-            image(const std::string& filepath, bool loadFromFile=true)
-            {
-                std::ifstream file(filepath, std::ios::binary);
-                if (!file) {
-                    if (ollama::use_exceptions) throw ollama::exception("Unable to open image file from path.");
-                    valid = false; return;
-                }
-
-                std::string file_contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
-                this->base64_sequence = macaron::Base64::Encode(file_contents);
-                valid = true;
-
-            }
-            image(const std::string base64_sequence) 
+            image(const std::string base64_sequence, bool valid = true) 
             {
                 this->base64_sequence = base64_sequence;
             }
             ~image(){};
+
+            static image from_file(const std::string& filepath)
+            {
+                bool valid = true;
+                std::ifstream file(filepath, std::ios::binary);
+                if (!file) {
+                    if (ollama::use_exceptions) throw ollama::exception("Unable to open image file from path.");
+                    valid = false; return image("", valid);
+                }
+
+                std::string file_contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+                return image(macaron::Base64::Encode(file_contents), valid);
+            }
+
+            static image from_base64_string(const std::string& base64_string)
+            {
+                return image(base64_string);
+            }
 
             const std::string as_base64_string() const
             {
