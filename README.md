@@ -6,7 +6,7 @@ Access the full power of local language models in C++ with just a few lines of c
 ```C++
 #include "ollama.hpp"
 
-std::cout << ollama::generate("llama3:8b", "Why is the sky blue?") << std::endl
+std::cout << ollama::generate("llama3:8b", "Why is the sky blue?") << std::endl;
 ```
 
 ## Quick Start
@@ -26,6 +26,10 @@ To run the examples and test cases, use:
 `build/test` <br>
 `build/examples`
 
+- [Full API](#full-api)
+  - [Server Status](#server-status)
+  - [Version](#version)
+
 ## Full API
 
 The test cases do a good job of providing discrete examples for each of the API features supported. I recommend reviewing these first in `test/test.cpp` to understand what the library and Ollama API provide.
@@ -33,14 +37,14 @@ The test cases do a good job of providing discrete examples for each of the API 
 ### Static Singleton vs Instances
 ollama-hpp provides a static singleton by default which allows you to make immediate calls to a server using intelligent defaults. 
 
-### Ollama Server Status
+### Server Status
 Verify that the Ollama server is running with `ollama::is_running()`
 
 ```C++
 bool running = ollama::is_running();
 ```
 
-### Ollama Version
+### Version
 Return a std::string containing the version of the ollama server using `ollama::get_version()`
 
 ```C++
