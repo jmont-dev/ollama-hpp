@@ -265,7 +265,7 @@ namespace ollama
             {
                 ollama::request request(message_type::embedding);
 
-                request["name"] = name;
+                request["model"] = name;
                 request["prompt"] = prompt;
                 if (options!=nullptr) request["options"] = options["options"];
                 request["keep_alive"] = keep_alive_duration;
@@ -527,8 +527,6 @@ class Ollama
         if (res) if (res->body=="Ollama is running") return true;
         return false;
     }
-
-
 
     json list_model_json()
     {
