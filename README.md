@@ -59,7 +59,7 @@ The `Ollama` object contains a series of intelligent defaults used to communicat
 // Use this function if your server resides at a different URL.
 ollama::setServerURL("http://localhost:11434");    
 
-// Optional. Set the read and write timeouts in seconds for receiving from and sending data to ollama.
+// Optional. Set the read and write timeouts in seconds for server interactions.
 // If you have a large model with a long response time you may need to increase these.
 ollama::setReadTimeout(120);
 ollama::setWriteTimeout(120);
