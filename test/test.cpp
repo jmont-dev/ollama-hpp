@@ -4,10 +4,11 @@
 #include "ollama.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <iostream>
 #include <string>
 
-TEST_CASE("Ollama Running") {
+TEST_CASE("Check if Ollama is Running") {
 
     ollama::show_requests(true);
     CHECK( ollama::is_running() );
@@ -89,6 +90,56 @@ TEST_CASE("Basic Generation") {
     options["num_predict"] = 18;
 
     ollama::response response = ollama::generate("llama3:8b", "Why is the sky blue?", options);
+    //std::cout << response << std::endl;
+
+    std::string expected_response = "What a great question!\n\nThe sky appears blue because of a phenomenon called Rayleigh scattering,";
+
+    CHECK(response.as_simple_string() == expected_response);
+}
+
+std::atomic<bool> done{false};
+std::string streamed_response;
+
+
+void on_receive_response(const ollama::response& response)
+{   
+    streamed_response+=response.as_simple_string();
+
+    if (response.as_json()["done"]==true) { done=true;  std::cout << std::endl;}
+}
+
+TEST_CASE("Streaming Generation") {
+
+    ollama::show_requests(true);
+
+    // Use a seed and 0 temperature to generate deterministic outputs. num_predict determines the number of tokens generated.
+    ollama::options options;
+    options["seed"] = 1;
+    options["temperature"] = 0;
+    options["num_predict"] = 18;
+
+    std::function<void(const ollama::response&)> response_callback = on_receive_response;  
+    ollama::generate("llama3:8b", "Why is the sky blue?", response_callback, options);
+
+    std::string expected_response = "What a great question!\n\nThe sky appears blue because of a phenomenon called Rayleigh scattering,";
+
+    CHECK( streamed_response == expected_response );
+}
+
+TEST_CASE("Non-Singleton Generation") {
+
+    ollama::show_requests(true);
+
+    // Use a seed and 0 temperature to generate deterministic outputs. num_predict determines the number of tokens generated.
+    ollama::options options;
+    options["seed"] = 1;
+    options["temperature"] = 0;
+    options["num_predict"] = 18;
+
+    Ollama my_ollama_server("http://localhost:11434");
+
+    // You can use all of the same functions from this instanced version of the class.
+    ollama::response response = my_ollama_server.generate("llama3:8b", "Why is the sky blue?", options);
     //std::cout << response << std::endl;
 
     std::string expected_response = "What a great question!\n\nThe sky appears blue because of a phenomenon called Rayleigh scattering,";
