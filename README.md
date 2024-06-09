@@ -9,6 +9,28 @@ Access the full power of local language models in C++ with just a few lines of c
 std::cout << ollama::generate("llama3:8b", "Why is the sky blue?") << std::endl
 ```
 
+## Quick Start
+Download the header in singleheader/ollama.hpp and include it with your project to get started. No additional files or linking are needed. C++11 is the minimum language specification and C++14/20 are also supported.
+
+For example:
+`g++ your_source_file.cpp -Iollama-hpp/singleheader -std=c++11`
+
+Ensure you have a running instance of ollama and any models you plan to run. For more details, see https://ollama.com
+
+
+To build the ollama-hpp examples and test cases, use:
+`make`
+
+To run the examples and test cases, use:
+`build/bin/test`
+`build/bin/examples`
+
+## Full API
+
+The test cases do a good job of compartmentalizing and providing examples for each of the API features supported. I recommend reviewing these first to understand what the library and Ollama API provide.
+
+### 
+
 ## Single-header vs Separate Headers
 For convenience, ollama-hpp includes a single-header version of the library in `singleheader/ollama.hpp` which bundles the core ollama.hpp code with single-header versions of nlohmann json, httplib, and base64.h. Each of these libraries is available under the MIT license and their respective licenses are included.
 The single-header include can be regenerated from these standalone files by running `./make_single_header.sh`
