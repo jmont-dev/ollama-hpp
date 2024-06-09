@@ -17,7 +17,7 @@ For example:
 
 Ensure you have an active instance of the ollama server and any models you plan to run. For more details, see https://ollama.com. You can check if your ollama server is running using: `sudo systemctl status ollama`
 
-
+## Building examples
 To build the ollama-hpp examples and test cases, use:
 `make`
 
@@ -28,7 +28,7 @@ To run the examples and test cases, use:
 
 ## Full API
 
-The test cases do a good job of providing discrete examples for each of the API features supported. I recommend reviewing these first to understand what the library and Ollama API provide.
+The test cases do a good job of providing discrete examples for each of the API features supported. I recommend reviewing these first in `test/test.cpp` to understand what the library and Ollama API provide.
 
 ### Static Singleton vs Instances
 ollama-hpp provides a static singleton by default which allows you to make immediate calls to a server using intelligent defaults. 
