@@ -119,15 +119,10 @@ int main()
     // Perform a simple generation to a string by specifying a model and a prompt. The response will be returned as one string without streaming the reply.
     std::cout << ollama::generate("llama3", "Why is the sky blue?") << std::endl;
     
-    // Set options to include with use of the model. These should be specified in JSON.
-    //json options;
-    //options["options"]["top_k"] = 20;
-    
+    // Set options to include with use of the model. These should be specified in JSON.  
     ollama::options options;
     options["top_k"] = 20;
-
-    // You can also pass in the options as a string containing json.
-    std::string string_options="{options: {top_k:20} }";
+    options["seed"] = 42;
 
     // Perform a simple generation which includes model options.
     std::cout << ollama::generate("llama3", "Why is the sky green?", options) << std::endl;

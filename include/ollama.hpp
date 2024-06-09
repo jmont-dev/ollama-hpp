@@ -165,7 +165,10 @@ namespace ollama
             if ( !this->at("options").contains(key) ) this->at("options").emplace( key, nlohmann::json::object() );                       
             return this->at("options").at(key); 
         }
+        nlohmann::json& operator[](const char* key) { return this->operator[](std::string(key)); };
+
         const nlohmann::json& operator[](const std::string& key) const { return this->at("options").at(key); }
+        const nlohmann::json& operator[](const char* key) const { return this->operator[](std::string(key)); };
 
     };
 
