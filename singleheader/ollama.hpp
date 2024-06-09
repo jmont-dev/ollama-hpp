@@ -34918,7 +34918,9 @@ namespace ollama
             bool is_valid(){return valid;}
 
             operator std::string() const { return base64_sequence; }
+
             operator std::vector<ollama::image>() const { std::vector<ollama::image> images; images.push_back(*this); return images; }
+            operator std::vector<std::string>() const { std::vector<std::string> images; images.push_back(*this); return images; }
 
         private:
             std::string base64_sequence;

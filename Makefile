@@ -4,6 +4,6 @@ examples: examples/main.cpp
 	g++ examples/main.cpp -Iinclude -o build/examples -std=c++11 -pthread -latomic
 test: test/test.cpp
 	mkdir -p build
-	g++ test/test.cpp -Isingleheader -Itest -o build/test -std=c++11 -pthread -latomic	
+	g++ test/test.cpp -Iinclude -Itest -o build/test -std=c++11 -pthread -latomic	
 clean:
 	rm -rf build
