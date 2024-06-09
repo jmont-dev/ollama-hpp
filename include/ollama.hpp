@@ -377,7 +377,7 @@ class Ollama
         ~Ollama() {}
 
     // Generate a non-streaming reply as a string.
-    ollama::response generate(const std::string& model,const std::string& prompt, json options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
+    ollama::response generate(const std::string& model,const std::string& prompt, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
     {
 
         ollama::response response;
@@ -783,7 +783,7 @@ namespace ollama
         return ollama.generate(model, prompt, on_receive_response, options, images);
     }
 
-    inline ollama::response chat(const std::string& model, const ollama::messages& messages, json options=nullptr, const std::string& format="json", const std::string& keep_alive_duration="5m")
+    inline ollama::response chat(const std::string& model, const ollama::messages& messages, const json& options=nullptr, const std::string& format="json", const std::string& keep_alive_duration="5m")
     {
         return ollama.chat(model, messages, options, format, keep_alive_duration);
     }

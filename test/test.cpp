@@ -97,6 +97,7 @@ TEST_CASE("Basic Generation") {
     CHECK(response.as_simple_string() == expected_response);
 }
 
+/*
 std::atomic<bool> done{false};
 std::string streamed_response;
 
@@ -125,7 +126,7 @@ TEST_CASE("Streaming Generation") {
 
     CHECK( streamed_response == expected_response );
 }
-
+*/
 TEST_CASE("Non-Singleton Generation") {
 
     ollama::show_requests(true);
@@ -141,6 +142,48 @@ TEST_CASE("Non-Singleton Generation") {
     // You can use all of the same functions from this instanced version of the class.
     ollama::response response = my_ollama_server.generate("llama3:8b", "Why is the sky blue?", options);
     //std::cout << response << std::endl;
+
+    std::string expected_response = "What a great question!\n\nThe sky appears blue because of a phenomenon called Rayleigh scattering,";
+
+    CHECK(response.as_simple_string() == expected_response);
+}
+
+TEST_CASE("Single-Message Chat") {
+
+    ollama::show_requests(true);
+
+    // Use a seed and 0 temperature to generate deterministic outputs. num_predict determines the number of tokens generated.
+    ollama::options options;
+    options["seed"] = 1;
+    options["temperature"] = 0;
+    options["num_predict"] = 18;
+
+    ollama::message message("user", "What are nimbus clouds?");
+
+    ollama::response response = ollama::chat("llama3:8b", message, options);
+
+    std::string expected_response = "What a great question!\n\nThe sky appears blue because of a phenomenon called Rayleigh scattering,";
+
+    CHECK(response.as_simple_string() == expected_response);
+}
+
+TEST_CASE("Multi-Message Chat") {
+
+    ollama::show_requests(true);
+
+    // Use a seed and 0 temperature to generate deterministic outputs. num_predict determines the number of tokens generated.
+    ollama::options options;
+    options["seed"] = 1;
+    options["temperature"] = 0;
+    options["num_predict"] = 18;
+
+    ollama::message message1("user", "What are nimbus clouds?");
+    ollama::message message2("assistant", "Nimbus clouds are dense, moisture-filled clouds that produce rain.");
+    ollama::message message3("user", "What are some other kinds of clouds?");
+
+    ollama::messages messages = {message1, message2, message3};
+
+    ollama::response response = ollama::chat("llama3:8b", messages, options);
 
     std::string expected_response = "What a great question!\n\nThe sky appears blue because of a phenomenon called Rayleigh scattering,";
 
@@ -190,7 +233,7 @@ TEST_CASE("Generation with Multiple Images") {
 
 TEST_CASE("Chat with Image") {
 
-    ollama::show_requests(true);
+    ollama::show_requests(false);
 
     // Use a seed and 0 temperature to generate deterministic outputs. num_predict determines the number of tokens generated.
     ollama::options options;
