@@ -167,6 +167,21 @@ std::cout << response << std::endl;
 
 As mentioned previously, you can access `ollama::response` as an `nlohmann::json` object or `std::string` depending on your preference.
 
+### Using Options
+All generative calls can include options specified through an `ollama::options` object. This class extends `nlohmann::json` and can support the options specified [here](https://github.com/ollama/ollama/blob/main/docs/api.md#generate-request-with-options).
+
+```C++
+ollama::options options;
+
+// Access and set these options like any other json type.
+options["seed"] = 1;
+options["temperature"] = 0;
+options["num_predict"] = 18;
+
+// Options can be included with any generative function
+ollama::response response = ollama::generate("llama3:8b", "Why is the sky blue?", options);
+```
+
 ### Debug Information
 Debug logging for requests and replies to the server can easily be turned on and off. This is useful if you want to see the actual JSON sent and received from the server.
 
