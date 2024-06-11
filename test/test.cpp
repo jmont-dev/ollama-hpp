@@ -247,6 +247,14 @@ TEST_SUITE("Ollama Tests") {
         CHECK(response.as_json().contains("embedding") == true);
     }
 
+    TEST_CASE("Enable Debug Logging") {
+        
+        ollama::show_requests(true);
+        ollama::show_replies(true);
+
+        CHECK(true);
+    }
+
     /*
     TEST_CASE("Create and Check Blobs") {
 
