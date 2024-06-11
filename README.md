@@ -285,12 +285,13 @@ Multiple images can be included using the `ollama::images` container.
 
 ```C++
 ollama::image image = ollama::image::from_file("llama.jpg");
-ollama::image base64_image = ollama::image::from_base64_string("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mNkYPhfz0AEYBxVSF+FAP5FDvcfRYWgAAAAAElFTkSuQmCC");
+ollama::image image2 = ollama::image::from_file("another_llama.jpg");
 
 // Include a list of images here
-ollama::images images={image, base64_image};
+ollama::images images={image, image2};
 
-ollama::response response = ollama::generate("llava", "What do you see in this image?", options, images);
+ollama::response response = 
+  ollama::generate("llava", "What do you see in these images?", options, images);
 ```
 
 ### Basic Chat Generation
@@ -326,7 +327,7 @@ You can use a collection of messages in a chat. This allows chain-of-thought pro
 
 ```C++
 ollama::message message1("user", "What are nimbus clouds?");
-ollama::message message2("assistant", "Nimbus clouds are dense, moisture-filled clouds that produce rain.");
+ollama::message message2("assistant", "Nimbus clouds are dark rain clouds.");
 ollama::message message3("user", "What are some other kinds of clouds?");
 
 ollama::messages messages = {message1, message2, message3};
@@ -359,7 +360,8 @@ The `ollama::message` class can contain an arbitrary number of `ollama::image` o
 ```C++
 ollama::image image = ollama::image::from_file("llama.jpg");
 
-// We can optionally include images with each message. Vision-enabled models will be able to utilize these.
+// We can optionally include images with each message. 
+//Vision-enabled models will be able to utilize these.
 ollama::message message_with_image("user", "What do you see in this image?", image);
 ollama::response response = ollama::chat("llava", message_with_image);
 ```
@@ -376,7 +378,8 @@ Like any other generative function, options can be included during generation.
 ollama::options options;
 options["num_predict"] = 20;
 
-ollama::response response = ollama::generate_embeddings("llama3:8b", "Why is the sky blue?", options);
+ollama::response response = 
+  ollama::generate_embeddings("llama3:8b", "Why is the sky blue?", options);
 ```
 
 ### Debug Information
