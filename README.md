@@ -57,8 +57,21 @@ The `ollama::response` class contains a response from the server. This is the de
 ```C++
 ollama::response response = ollama::generate("llama3:8b", "Why is the sky blue?");
 
-response.as_json();
-response.as_simple_string();
+// A JSON object created from the server response
+nlohmann::json data = response.as_json();
+
+// A string representing the JSON data received
+std::string json_string = response.as_json_string();
+
+// Usually contains just the human-readable response from the generation/chat
+std::string simple_string = response.as_simple_string();
+```
+
+When interacting with streams or strings, `ollama::response` will default to using the `as_simple_string` representation. This usually contains the human-readable portion of the response.
+
+```C++
+// Will print the generated human-readable portion of response, not the JSON
+std::cout << response << std::endl;
 ```
 
 ### Set Server Parameters
@@ -120,7 +133,7 @@ std::cout << "Model family is " << model_info["details"]["family"] << std::endl;
 ```
 
 ### List locally available models
-You can query a list of locally-available models on your ollama server using the following. This is returned as a `std::vector` of strings:
+You can query a list of locally-available models on your ollama server using the following. This is returned as a `std::vector` of `std::string`.
 
 ```C++
 // List the models available locally in the ollama server
@@ -143,12 +156,23 @@ You can also dynamically enable and disable exceptions. If exceptions are disabl
 ollama::allow_exceptions(false);
 ```
 
+### Basic Generation
+A generation call can be made by specifying a model name and prompt. This will return an `ollama::response`.
+
+```C++
+ollama::response response = ollama::generate("llama3:8b", "Why is the sky blue?");
+
+std::cout << response << std::endl;
+```
+
+As mentioned previously, you can access `ollama::response` as an `nlohmann::json` object or `std::string` depending on your preference.
+
 ### Debug Information
 Debug logging for requests and replies to the server can easily be turned on and off. This is useful if you want to see the actual JSON sent and received from the server.
 
 ```C++
-  ollama::show_requests(true);
-  ollama::show_replies(true);
+ollama::show_requests(true);
+ollama::show_replies(true);
   ```
   
 ## Single-header vs Separate Headers
