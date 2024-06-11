@@ -167,6 +167,8 @@ std::cout << response << std::endl;
 
 As mentioned previously, you can access `ollama::response` as an `nlohmann::json` object or `std::string` depending on your preference.
 
+The default call does not use streaming from the Ollama server, so the reply will block and be received as one response.
+
 ### Using Options
 All generative calls can include options specified through an `ollama::options` object. This class extends `nlohmann::json` and can support the options specified [here](https://github.com/ollama/ollama/blob/main/docs/api.md#generate-request-with-options).
 
@@ -180,6 +182,54 @@ options["num_predict"] = 18;
 
 // Options can be included with any generative function
 ollama::response response = ollama::generate("llama3:8b", "Why is the sky blue?", options);
+```
+
+### Streaming Generation
+You can use a streaming generation to bind a callback function that is invoked every time a token is received. This is useful when you have larger responses and want to show tokens as they arrive.
+
+```C++
+
+void on_receive_response(const ollama::response& response)
+{   
+    // Print the token received
+    std::cout << response << std::flush;
+
+    // The server will set "done" to true for the last response
+    if (response.as_json()["done"]==true) std::cout << std::endl;
+}
+
+// This function will be called every token
+std::function<void(const ollama::response&)> response_callback = on_receive_response;  
+
+// Bind the callback to the generation
+ollama::generate("llama3:8b", "Why is the sky blue?", response_callback);
+```
+This function uses a blocking socket call so it will still block the primary thread until all tokens are received.
+
+### Asynchronous Streaming Generation
+You can launch a streaming call in a thread if you don't want it to block the primary thread. This will allow asynchronous execution.
+
+```C++
+
+std::atomic<bool> done{false};
+
+void on_receive_response(const ollama::response& response)
+{   
+    std::cout << response << std::flush;
+
+    if (response.as_json()["done"]==true) { done=true;  std::cout << std::endl;}
+}
+
+// Use std::function to define a callback from an existing function
+// You can also use a lambda with an equivalent signature
+std::function<void(const ollama::response&)> response_callback = on_receive_response;  
+
+// You can launch the generation in a thread with a callback to use it asynchronously.
+std::thread new_thread( [response_callback]{ ollama::generate("llama3:8b", "Why is the sky blue?", response_callback); } );
+
+// Prevent the main thread from exiting while we wait for an asynchronous response.
+while (!done) { std::this_thread::sleep_for(std::chrono::microseconds(100) ); }
+new_thread.join();
 ```
 
 ### Debug Information
