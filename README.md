@@ -117,7 +117,19 @@ You can query a list of locally-available models on your ollama server using the
 std::vector<std::string> models = ollama::list_models();
 ```
 
+### Exception Handling
+Most calls will throw `ollama::exception` if an exception occurs with details on the error that has occurred. This can be caught in
 
+You can also dynamically enable and disable exceptions. If exceptions are disabled, 
+
+### Debug Information
+Debug logging for requests and replies to the server can easily be turned on and off. This is useful if you want to see the actual JSON sent and received from the server.
+
+```C++
+  ollama::show_requests(true);
+  ollama::show_replies(true);
+  ```
+  
 ## Single-header vs Separate Headers
 For convenience, ollama-hpp includes a single-header version of the library in `singleheader/ollama.hpp` which bundles the core ollama.hpp code with single-header versions of nlohmann json, httplib, and base64.h. Each of these libraries is available under the MIT license and their respective licenses are included.
 The single-header include can be regenerated from these standalone files by running `./make_single_header.sh`
