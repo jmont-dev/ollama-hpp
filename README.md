@@ -30,9 +30,35 @@ To run the examples and test cases, use:
 
 The test cases do a good job of providing discrete examples for each of the API features supported. I recommend reviewing these first in `test/test.cpp` to understand what the library and Ollama API provide.
 
-- [Full API](#full-api)
-  - [Server Status](#server-status)
-  - [Version](#version)
+- [ollama-hpp](#ollama-hpp)
+  - [Quick Start](#quick-start)
+  - [Building examples](#building-examples)
+  - [Full API](#full-api)
+    - [Ollama Class and Singleton](#ollama-class-and-singleton)
+    - [Ollama Response](#ollama-response)
+    - [Set Server Parameters](#set-server-parameters)
+    - [Get Server Status](#get-server-status)
+    - [Get Server Version](#get-server-version)
+    - [Load a Model into Memory](#load-a-model-into-memory)
+    - [Pull, Copy, and Delete Models](#pull-copy-and-delete-models)
+    - [Retrieve Model Info](#retrieve-model-info)
+    - [List locally available models](#list-locally-available-models)
+    - [Exception Handling](#exception-handling)
+    - [Basic Generation](#basic-generation)
+    - [Using Options](#using-options)
+    - [Streaming Generation](#streaming-generation)
+    - [Asynchronous Streaming Generation](#asynchronous-streaming-generation)
+    - [Using Images](#using-images)
+    - [Generation using Images](#generation-using-images)
+    - [Basic Chat Generation](#basic-chat-generation)
+    - [Chat with Multiple Messages](#chat-with-multiple-messages)
+    - [Streaming Chat Generation](#streaming-chat-generation)
+    - [Chat with Images](#chat-with-images)
+    - [Embedding Generation](#embedding-generation)
+    - [Debug Information](#debug-information)
+  - [Single-header vs Separate Headers](#single-header-vs-separate-headers)
+  - [About this software:](#about-this-software)
+  - [License](#license)
 
 
 ### Ollama Class and Singleton
@@ -96,7 +122,7 @@ bool running = ollama::is_running();
 ```
 
 ### Get Server Version
-Return a std::string containing the version of the ollama server using `ollama::get_version()`
+Return a `std::string` containing the version of the ollama server using `ollama::get_version()`
 
 ```C++
 std::string version = ollama::get_version();
