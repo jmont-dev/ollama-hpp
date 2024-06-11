@@ -307,14 +307,48 @@ ollama::response response = ollama::chat("llama3:8b", messages);
 ```
 
 ### Streaming Chat Generation
-The default chat generation does not stream tokens and will return the entire reply as one response. You can bind a callback function to handle a streamed response for each token.
+The default chat generation does not stream tokens and will return the entire reply as one response. You can bind a callback function to handle a streamed response for each token, just like a standard generation.
 
 ```C++
+
+void on_receive_response(const ollama::response& response)
+{   
+  std::cout << response << std::flush;
+
+  if (response.as_json()["done"]==true) std::cout << std::endl;
+}
+
 std::function<void(const ollama::response&)> response_callback = on_receive_response;  
 
 ollama::message message("user", "Why is the sky blue?");       
 
 ollama::chat("llama3:8b", message, response_callback, options);
+```
+
+### Chat with Images
+The `ollama::message` class can contain an arbitrary number of `ollama::image` objects to be sent to the server. This allows images to be sent in each message of a chat for vision-enabled models. 
+
+```C++
+ollama::image image = ollama::image::from_file("llama.jpg");
+
+// We can optionally include images with each message. Vision-enabled models will be able to utilize these.
+ollama::message message_with_image("user", "What do you see in this image?", image);
+ollama::response response = ollama::chat("llava", message_with_image);
+```
+### Embedding Generation
+Embeddings can be generated from a specified model name and prompt.
+
+```C++
+ollama::response response = ollama::generate_embeddings("llama3:8b", "Why is the sky blue?");
+```
+
+Like any other generative function, options can be included during generation.
+
+```C++
+ollama::options options;
+options["num_predict"] = 20;
+
+ollama::response response = ollama::generate_embeddings("llama3:8b", "Why is the sky blue?", options);
 ```
 
 ### Debug Information
