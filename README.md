@@ -10,7 +10,7 @@ std::cout << ollama::generate("llama3:8b", "Why is the sky blue?") << std::endl;
 ```
 
 ## Quick Start
-Download the header in singleheader/ollama.hpp and include it with your project to get started. No additional files or linking are needed. C++11 is the minimum required language specification and C++14/20 are also supported.
+Download the header in singleheader/ollama.hpp and include it with your project to get started. No additional files or linking are required. C++11 is the minimum required language specification and C++14/20 are also supported.
 
 For example:
 `g++ your_source_file.cpp -Iollama-hpp/singleheader -std=c++11`
@@ -36,7 +36,7 @@ The test cases do a good job of providing discrete examples for each of the API 
 
 
 ### Ollama Class and Singleton
-The `Ollama` class defines the logic required to interface and make calls to an ollama server.
+The `Ollama` class defines the logic required to interface with an ollama server.
 
 ```C++
 Ollama my_server("http://localhost:11434");
@@ -59,7 +59,7 @@ ollama::response response = ollama::generate("llama3:8b", "Why is the sky blue?"
 
 response.as_json();
 response.as_simple_string();
-
+```
 
 ### Set Server Parameters
 The `Ollama` object contains a series of intelligent defaults used to communicate with an ollama server. You will not typically have to change these, but can do so if required:
