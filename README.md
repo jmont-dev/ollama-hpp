@@ -277,7 +277,8 @@ Generative calls can also include images.
 ```C++
 ollama::image image = ollama::image::from_file("llama.jpg");
 
-ollama::response response = ollama::generate("llava", "What do you see in this image?", options, image);
+ollama::response response = 
+  ollama::generate("llava", "What do you see in this image?", options, image);
 ```
 
 Multiple images can be included using the `ollama::images` container.
