@@ -266,8 +266,56 @@ ollama::response response = ollama::generate("llava", "What do you see in this i
 ```
 
 ### Basic Chat Generation
+The Ollama chat API can be used as an alternative to basic generation. This allows the user to send a series of messages to the server and obtain the next response in the conversation.
 
+`ollama::message` represents a single chat message in the conversation. It is composed of a role, content, and an optional series of images.
 
+```C++
+ollama::message message("user", "Why is the sky blue?");
+```
+
+Sending a message to the server will return the next message in the conversation.
+```C++
+ollama::message message("user", "Why is the sky blue?");
+
+ollama::response response = ollama::chat("llama3:8b", message);
+```
+
+Like any generative call, chat calls can also include options.
+
+```C++
+ollama::options options;
+options["seed"] = 1;
+
+ollama::message message("user", "Why is the sky blue?");
+
+ollama::response response = ollama::chat("llama3:8b", message, options);
+```
+
+### Chat with Multiple Messages
+
+You can use a collection of messages in a chat. This allows chain-of-thought prompting and can be useful for setting up a conversation.
+
+```C++
+ollama::message message1("user", "What are nimbus clouds?");
+ollama::message message2("assistant", "Nimbus clouds are dense, moisture-filled clouds that produce rain.");
+ollama::message message3("user", "What are some other kinds of clouds?");
+
+ollama::messages messages = {message1, message2, message3};
+
+ollama::response response = ollama::chat("llama3:8b", messages);
+```
+
+### Streaming Chat Generation
+The default chat generation does not stream tokens and will return the entire reply as one response. You can bind a callback function to handle a streamed response for each token.
+
+```C++
+std::function<void(const ollama::response&)> response_callback = on_receive_response;  
+
+ollama::message message("user", "Why is the sky blue?");       
+
+ollama::chat("llama3:8b", message, response_callback, options);
+```
 
 ### Debug Information
 Debug logging for requests and replies to the server can easily be turned on and off. This is useful if you want to see the actual JSON sent and received from the server.
