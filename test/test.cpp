@@ -172,8 +172,8 @@ TEST_SUITE("Ollama Tests") {
 
     TEST_CASE("Chat with Streaming Response") {
 
-        ollama::show_requests(true);
-        ollama::show_replies(true);
+        ollama::show_requests(false);
+        ollama::show_replies(false);
 
         streamed_response="";
         done.store(false);
