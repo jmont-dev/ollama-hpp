@@ -51,6 +51,16 @@ For convenience, a static singleton of the Ollama class is included in the `olla
 ollama::generate("llama3:8b", "Why is the sky blue?") << std::endl;
 ```
 
+### Ollama Response
+The `ollama::response` class contains a response from the server. This is the default class returned for most generations. It can be flexibly represented as `nlohmann::json` or a `std::string` depending on context.
+
+```C++
+ollama::response response = ollama::generate("llama3:8b", "Why is the sky blue?");
+
+response.as_json();
+response.as_simple_string();
+
+
 ### Set Server Parameters
 The `Ollama` object contains a series of intelligent defaults used to communicate with an ollama server. You will not typically have to change these, but can do so if required:
 
@@ -118,9 +128,20 @@ std::vector<std::string> models = ollama::list_models();
 ```
 
 ### Exception Handling
-Most calls will throw `ollama::exception` if an exception occurs with details on the error that has occurred. This can be caught in
+Most calls will throw `ollama::exception` in the event of an error, with details on the exception that has occurred. Exceptions are enabled by default.
 
-You can also dynamically enable and disable exceptions. If exceptions are disabled, 
+```C++
+try { 
+    ollama::generate("Non-existent-model", "Requesting this model will throw an error"); 
+} 
+catch(ollama::exception e) { std::cout << e.what() << std::endl; }
+```
+
+You can also dynamically enable and disable exceptions. If exceptions are disabled, functions will return empty responses or false where appropriate instead of throwing `ollama::exception`.
+
+```C++ 
+ollama::allow_exceptions(false);
+```
 
 ### Debug Information
 Debug logging for requests and replies to the server can easily be turned on and off. This is useful if you want to see the actual JSON sent and received from the server.
