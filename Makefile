@@ -5,7 +5,7 @@ examples: examples/main.cpp
 test: test-cpp11
 test-cpp11: test/test.cpp
 	mkdir -p build
-	g++ test/test.cpp -Iinclude -Itest -o build/test-cpp11 -std=c++11 -pthread -latomic
+	g++ test/test.cpp -Iinclude -Itest -o build/test -std=c++11 -pthread -latomic
 test-cpp14: test/test.cpp
 	mkdir -p build
 	g++ test/test.cpp -Iinclude -Itest -o build/test-cpp14 -std=c++14 -pthread -latomic

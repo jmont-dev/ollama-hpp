@@ -19,7 +19,7 @@ Ensure you have an active instance of the ollama server and any models you plan 
 
 ## Building examples
 To build the ollama-hpp examples and test cases, use:
-`make`
+`make -j8`
 
 To run the examples and test cases, use:
 
@@ -104,10 +104,10 @@ You can easily pull, copy, and delete models locally available within your ollam
 bool model_pulled = ollama::pull_model("llama3:8b");
 
 // Copy a model by specifying a source model and destination model name.
-bool model_copied = ollama::copy_model("llama3:8b", "llama3_copy") ==true );
+bool model_copied = ollama::copy_model("llama3:8b", "llama3_copy");
 
 // Delete a model by specifying a model name.
-bool model_deleted = ollama::delete_model("llama3_copy") == true );
+bool model_deleted = ollama::delete_model("llama3_copy");
 ```
 
 ### Retrieve Model Info
@@ -137,7 +137,7 @@ try {
 catch(ollama::exception e) { std::cout << e.what() << std::endl; }
 ```
 
-You can also dynamically enable and disable exceptions. If exceptions are disabled, functions will return empty responses or false where appropriate instead of throwing `ollama::exception`.
+You can also dynamically enable and disable exceptions. If exceptions are disabled, functions will return an empty `ollama::response` or false where appropriate instead of throwing `ollama::exception`.
 
 ```C++ 
 ollama::allow_exceptions(false);
