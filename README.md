@@ -251,7 +251,8 @@ void on_receive_response(const ollama::response& response)
 std::function<void(const ollama::response&)> response_callback = on_receive_response;  
 
 // You can launch the generation in a thread with a callback to use it asynchronously.
-std::thread new_thread( [response_callback]{ ollama::generate("llama3:8b", "Why is the sky blue?", response_callback); } );
+std::thread new_thread( [response_callback]{ 
+  ollama::generate("llama3:8b", "Why is the sky blue?", response_callback); } );
 
 // Prevent the main thread from exiting while we wait for an asynchronous response.
 while (!done) { std::this_thread::sleep_for(std::chrono::microseconds(100) ); }
