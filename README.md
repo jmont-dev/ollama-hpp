@@ -231,6 +231,43 @@ std::thread new_thread( [response_callback]{ ollama::generate("llama3:8b", "Why 
 while (!done) { std::this_thread::sleep_for(std::chrono::microseconds(100) ); }
 new_thread.join();
 ```
+### Using Images
+Generations can include images for vision-enabled models such as `llava`. The `ollama::image` class can load an image from a file and encode it as a [base64](https://en.wikipedia.org/wiki/Base64) string.
+
+```C++
+ollama::image image = ollama::image::from_file("llama.jpg");
+```
+
+Images can also be represented as a base64 string literal.
+
+```C++
+ollama::image base64_image = ollama::image::from_base64_string("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mNkYPhfz0AEYBxVSF+FAP5FDvcfRYWgAAAAAElFTkSuQmCC");
+```
+
+### Generation using Images
+Generative calls can also include images. 
+
+```C++
+ollama::image image = ollama::image::from_file("llama.jpg");
+
+ollama::response response = ollama::generate("llava", "What do you see in this image?", options, image);
+```
+
+Multiple images can be included using the `ollama::images` container.
+
+```C++
+ollama::image image = ollama::image::from_file("llama.jpg");
+ollama::image base64_image = ollama::image::from_base64_string("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFUlEQVR42mNkYPhfz0AEYBxVSF+FAP5FDvcfRYWgAAAAAElFTkSuQmCC");
+
+// Include a list of images here
+ollama::images images={image, base64_image};
+
+ollama::response response = ollama::generate("llava", "What do you see in this image?", options, images);
+```
+
+### Basic Chat Generation
+
+
 
 ### Debug Information
 Debug logging for requests and replies to the server can easily be turned on and off. This is useful if you want to see the actual JSON sent and received from the server.
