@@ -374,7 +374,7 @@ class Ollama
         }
 
         Ollama(): Ollama("http://localhost:11434") {}
-        ~Ollama() {}
+        ~Ollama() { delete this->cli; }
 
     // Generate a non-streaming reply as a string.
     ollama::response generate(const std::string& model,const std::string& prompt, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
