@@ -3,17 +3,11 @@ project(OLLAMA_HPP VERSION 0.9.0)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSION OFF)
-set(CMAKE_CXX_STANDARD 20)
-
-if (MINGW)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
-endif(MINGW)
+set(CMAKE_CXX_STANDARD 11)
 
 add_compile_options(-Wall -Wpedantic)
 add_compile_options(-m64)
-add_compile_options(-O3)
-
-
+#add_compile_options(-O3)
 
 #IF(NOT CMAKE_BUILD_TYPE)
 #  SET(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
