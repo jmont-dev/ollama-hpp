@@ -11,6 +11,7 @@
 // Use a seed and 0 temperature to generate deterministic outputs. num_predict determines the number of tokens generated.
 // Note that this is static. We will use these options for other generations.
 static ollama::options options;
+static std::string Model = "llama3:8b";
 
 TEST_SUITE("Ollama Tests") {
 
@@ -52,16 +53,16 @@ TEST_SUITE("Ollama Tests") {
 
     TEST_CASE("Load Model") {
 
-        CHECK( ollama::load_model("llama3:8b") );
+        CHECK( ollama::load_model("Model") );
     }
 
     TEST_CASE("Pull, Copy, and Delete Models") {
 
         // Pull a model by specifying a model name.
-        CHECK( ollama::pull_model("llama3:8b") == true );
+        CHECK( ollama::pull_model("Model") == true );
 
         // Copy a model by specifying a source model and destination model name.
-        CHECK( ollama::copy_model("llama3:8b", "llama3_copy") ==true );
+        CHECK( ollama::copy_model("Model", "llama3_copy") ==true );
 
         // Delete a model by specifying a model name.
         CHECK( ollama::delete_model("llama3_copy") == true );
@@ -70,7 +71,7 @@ TEST_SUITE("Ollama Tests") {
     TEST_CASE("Model Info") {
 
         // Request model info from the Ollama server.
-        nlohmann::json model_info = ollama::show_model_info("llama3:8b");
+        nlohmann::json model_info = ollama::show_model_info("Model");
         //std::cout << "Model family is " << model_info["details"]["family"] << std::endl;
 
         CHECK(model_info["details"]["family"] == "llama");
@@ -81,7 +82,7 @@ TEST_SUITE("Ollama Tests") {
         // List the models available locally in the ollama server
         std::vector<std::string> models = ollama::list_models();    
 
-        bool contains_model = (std::find(models.begin(), models.end(), "llama3:8b") != models.end() );
+        bool contains_model = (std::find(models.begin(), models.end(), "Model") != models.end() );
 
         CHECK( contains_model );
     }
@@ -94,14 +95,14 @@ TEST_SUITE("Ollama Tests") {
         try { 
             ollama::generate("Non-existent-model", "Requesting this model will throw an error"); 
         } 
-        catch(ollama::exception e) { exception_handled = true; }
+        catch(ollama::exception& e) { exception_handled = true; }
 
         CHECK( exception_handled );
     }
 
     TEST_CASE("Basic Generation") {
 
-        ollama::response response = ollama::generate("llama3:8b", "Why is the sky blue?", options);
+        ollama::response response = ollama::generate("Model", "Why is the sky blue?", options);
         //std::cout << response << std::endl;
 
         std::string expected_response = "What a great question!\n\nThe sky appears blue because of a phenomenon called Rayleigh scattering,";
@@ -124,7 +125,7 @@ TEST_SUITE("Ollama Tests") {
     TEST_CASE("Streaming Generation") {
 
         std::function<void(const ollama::response&)> response_callback = on_receive_response;  
-        ollama::generate("llama3:8b", "Why is the sky blue?", response_callback, options);
+        ollama::generate("Model", "Why is the sky blue?", response_callback, options);
 
         std::string expected_response = "What a great question!\n\nThe sky appears blue because of a phenomenon called Rayleigh scattering,";
 
@@ -136,7 +137,7 @@ TEST_SUITE("Ollama Tests") {
         Ollama my_ollama_server("http://localhost:11434");
 
         // You can use all of the same functions from this instanced version of the class.
-        ollama::response response = my_ollama_server.generate("llama3:8b", "Why is the sky blue?", options);
+        ollama::response response = my_ollama_server.generate("Model", "Why is the sky blue?", options);
         //std::cout << response << std::endl;
 
         std::string expected_response = "What a great question!\n\nThe sky appears blue because of a phenomenon called Rayleigh scattering,";
@@ -148,7 +149,7 @@ TEST_SUITE("Ollama Tests") {
 
         ollama::message message("user", "Why is the sky blue?");
 
-        ollama::response response = ollama::chat("llama3:8b", message, options);
+        ollama::response response = ollama::chat("Model", message, options);
 
         std::string expected_response = "What a great question!\n\nThe sky appears blue because of a phenomenon called Rayleigh scattering,";
 
@@ -163,7 +164,7 @@ TEST_SUITE("Ollama Tests") {
 
         ollama::messages messages = {message1, message2, message3};
 
-        ollama::response response = ollama::chat("llama3:8b", messages, options);
+        ollama::response response = ollama::chat("Model", messages, options);
 
         std::string expected_response = "";
 
@@ -182,7 +183,7 @@ TEST_SUITE("Ollama Tests") {
         
         ollama::message message("user", "Why is the sky blue?");       
         
-        ollama::chat("llama3:8b", message, response_callback, options);
+        ollama::chat("Model", message, response_callback, options);
 
         CHECK(streamed_response!="");
     }
@@ -241,7 +242,7 @@ TEST_SUITE("Ollama Tests") {
 
         options["num_predict"] = 18;
 
-        ollama::response response = ollama::generate_embeddings("llama3:8b", "Why is the sky blue?");
+        ollama::response response = ollama::generate_embeddings("Model", "Why is the sky blue?");
         //std::cout << response << std::endl;
 
         CHECK(response.as_json().contains("embedding") == true);
