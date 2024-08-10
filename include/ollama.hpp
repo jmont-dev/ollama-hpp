@@ -250,7 +250,7 @@ namespace ollama
                 (*this)["stream"] = stream;
 
                 if (options!=nullptr) (*this)["options"] = options["options"];
-                (*this)["format"] = format;
+                //(*this)["format"] = format; // Commented out as providing the format causes issues with some models.
                 (*this)["keep_alive"] = keep_alive_duration;
                 type = message_type::chat;
 
