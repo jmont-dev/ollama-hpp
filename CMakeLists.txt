@@ -17,7 +17,7 @@ if (WIN32)
   if (MINGW)
     add_definitions(-D_WIN32_WINNT=0x0A00)
   endif(MINGW)
-    link_libraries(wsock32 ws2_32)
+    link_libraries(ws2_32)
 endif (WIN32)
 
 add_executable(Example examples/main.cpp)
