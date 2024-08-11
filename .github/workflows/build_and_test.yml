@@ -14,7 +14,12 @@ jobs:
       image: ollama/ollama:latest
     steps:
     - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: |
+        apt-get update && apt-get install -y gcc make
     - name: make
       run: make -j8
+    - name: Pull models
+      run: ollama pull llama3:8b
   #  - name: test
   #    run: build/test
