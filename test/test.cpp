@@ -242,9 +242,8 @@ TEST_SUITE("Ollama Tests") {
         options["num_predict"] = 18;
 
         ollama::response response = ollama::generate_embeddings("llama3:8b", "Why is the sky blue?");
-        //std::cout << response << std::endl;
 
-        CHECK(response.as_json().contains("embedding") == true);
+        CHECK(response.as_json().contains("embeddings") == true);
     }
 
     TEST_CASE("Enable Debug Logging") {

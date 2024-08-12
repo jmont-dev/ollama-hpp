@@ -35053,13 +35053,14 @@ namespace ollama
             request(): json() {}
             ~request(){};
 
-            static ollama::request from_embedding(const std::string& name, const std::string& prompt, const json& options=nullptr, const std::string& keep_alive_duration="5m")
+            static ollama::request from_embedding(const std::string& model, const std::string& input, const json& options=nullptr, bool truncate=true, const std::string& keep_alive_duration="5m")
             {
                 ollama::request request(message_type::embedding);
 
-                request["model"] = name;
-                request["prompt"] = prompt;
+                request["model"] = model;
+                request["input"] = input;
                 if (options!=nullptr) request["options"] = options["options"];
+                request["truncate"] = truncate;
                 request["keep_alive"] = keep_alive_duration;
                 
                 return request;
@@ -35085,7 +35086,7 @@ namespace ollama
                     
                     if (type==message_type::generation && json_data.contains("response")) simple_string=json_data["response"].get<std::string>(); 
                     else
-                    if (type==message_type::embedding && json_data.contains("embedding")) simple_string=json_data["embedding"].get<std::string>();
+                    if (type==message_type::embedding && json_data.contains("embeddings")) simple_string=json_data["embeddings"].get<std::string>();
                     else
                     if (type==message_type::chat && json_data.contains("message")) simple_string=json_data["message"]["content"].get<std::string>();
                                          
@@ -35505,15 +35506,15 @@ class Ollama
         return false;
     }
 
-    ollama::response generate_embeddings(const std::string& model, const std::string& prompt, const json& options=nullptr, const std::string& keep_alive_duration="5m")
+    ollama::response generate_embeddings(const std::string& model, const std::string& input, const json& options=nullptr, bool truncate = true, const std::string& keep_alive_duration="5m")
     {
-        ollama::request request = ollama::request::from_embedding(model, prompt, options, keep_alive_duration);
+        ollama::request request = ollama::request::from_embedding(model, input, options, truncate, keep_alive_duration);
         ollama::response response;
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;
         
-        if (auto res = cli->Post("/api/embeddings", request_string, "application/json"))
+        if (auto res = cli->Post("/api/embed", request_string, "application/json"))
         {
             if (ollama::log_replies) std::cout << res->body << std::endl;
 
@@ -35675,9 +35676,9 @@ namespace ollama
         return ollama.push_model(model, allow_insecure);
     }
 
-    inline ollama::response generate_embeddings(const std::string& model, const std::string& prompt, const json& options=nullptr, const std::string& keep_alive_duration="5m")
+    inline ollama::response generate_embeddings(const std::string& model, const std::string& input, const json& options=nullptr, bool truncate = true, const std::string& keep_alive_duration="5m")
     {
-        return ollama.generate_embeddings(model, prompt, options, keep_alive_duration);
+        return ollama.generate_embeddings(model, input, options, truncate, keep_alive_duration);
     }
 
     inline void setReadTimeout(const int& seconds)
