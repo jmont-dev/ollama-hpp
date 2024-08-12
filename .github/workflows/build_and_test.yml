@@ -10,8 +10,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    container:
-      image: ollama/ollama:latest
+#    container:
+#      image: ollama/ollama:latest
     steps:
     - uses: actions/checkout@v4
     - name: Install dependencies
