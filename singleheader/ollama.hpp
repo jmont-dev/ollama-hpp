@@ -35398,10 +35398,11 @@ class Ollama
 
     }
 
-    json show_model_info(const std::string& model)
+    json show_model_info(const std::string& model, bool verbose=false)
     {
         json request, response;
         request["name"] = model;
+        if (verbose) request["verbose"] = true;
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;
@@ -35649,9 +35650,9 @@ namespace ollama
         return ollama.create_blob(digest);
     }
 
-    inline json show_model_info(const std::string& model)
+    inline json show_model_info(const std::string& model, bool verbose=false)
     {
-        return ollama.show_model_info(model);
+        return ollama.show_model_info(model, verbose);
     }
 
     inline bool copy_model(const std::string& source_model, const std::string& dest_model)
