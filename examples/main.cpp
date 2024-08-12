@@ -44,8 +44,6 @@ int main()
     // Generate embeddings for a model and a prompt.
     std::cout << ollama::generate_embeddings("llama3:8b", "Why is the sky blue?") << std::endl;
 
-    sleep(10);
-
     // Push a model a model library with the syntax <namespace>/<model>:<tag>. Note that you must have registered on ollama.ai and added a public key to do this.
     try { if ( ollama::push_model("jmont/my_model:latest") ) std::cout << "Model was pushed" << std::endl; }catch(...) {std::cout << "Unable to push model." << std::endl; }
 
