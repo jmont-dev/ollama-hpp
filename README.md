@@ -56,6 +56,7 @@ The test cases do a good job of providing discrete examples for each of the API 
     - [Chat with Images](#chat-with-images)
     - [Embedding Generation](#embedding-generation)
     - [Debug Information](#debug-information)
+    - [Manual Requests](#manual-requests)
   - [Single-header vs Separate Headers](#single-header-vs-separate-headers)
   - [About this software:](#about-this-software)
   - [License](#license)
@@ -389,7 +390,20 @@ Debug logging for requests and replies to the server can easily be turned on and
 ollama::show_requests(true);
 ollama::show_replies(true);
   ```
-  
+
+### Manual Requests
+For those looking for greater control of the requests sent to the ollama server, manual requests can be created through the `ollama::request` class. This class extends `nlohmann::json` and can be treated as a standard JSON object.
+
+```C++
+ollama::request request(ollama::message_type::generation);
+request["model"]="mistral";
+request["prompt"]="Why is the sky blue?";
+request["stream"] = false;
+request["system"] = "Talk like a pirate for the next reply."
+std::cout << ollama::generate(request) << std::endl;
+```
+This provides the most customization of the request. Users should take care to ensure that valid fields are provided, otherwise an exception will likely be thrown on response. Manual requests can be made for generate, chat, and embedding endpoints.
+
 ## Single-header vs Separate Headers
 For convenience, ollama-hpp includes a single-header version of the library in `singleheader/ollama.hpp` which bundles the core ollama.hpp code with single-header versions of nlohmann json, httplib, and base64.h. Each of these libraries is available under the MIT license and their respective licenses are included.
 The single-header include can be regenerated from these standalone files by running `./make_single_header.sh`

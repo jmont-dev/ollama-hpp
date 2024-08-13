@@ -377,12 +377,16 @@ class Ollama
         Ollama(): Ollama("http://localhost:11434") {}
         ~Ollama() { delete this->cli; }
 
-    // Generate a non-streaming reply as a string.
     ollama::response generate(const std::string& model,const std::string& prompt, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
     {
-
-        ollama::response response;
         ollama::request request(model, prompt, options, false, images);
+        return generate(request);
+    }
+
+    // Generate a non-streaming reply as a string.
+    ollama::response generate(const ollama::request& request)
+    {
+        ollama::response response;
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;      
@@ -400,14 +404,19 @@ class Ollama
             if (ollama::use_exceptions) throw ollama::exception("No response returned from server "+this->server_url+". Error was: "+httplib::to_string( res.error() ));
         }
 
-        return response;
+        return response;        
     }
 
-    // Generate a streaming reply where a user-defined callback function is invoked when each token is received.
     bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_token, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
     {
-
         ollama::request request(model, prompt, options, true, images);
+        return generate(request, on_receive_token);
+    }
+
+
+    // Generate a streaming reply where a user-defined callback function is invoked when each token is received.
+    bool generate(ollama::request& request, std::function<void(const ollama::response&)> on_receive_token)
+    {
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;
@@ -428,12 +437,17 @@ class Ollama
         return false;
     }
 
-    // Generate a non-streaming reply as a string.
     ollama::response chat(const std::string& model, const ollama::messages& messages, json options=nullptr, const std::string& format="json", const std::string& keep_alive_duration="5m")
     {
-
-        ollama::response response;
         ollama::request request(model, messages, options, false, format, keep_alive_duration);
+        return chat(request);
+    }
+
+
+    // Generate a non-streaming reply as a string.
+    ollama::response chat(ollama::request& request)
+    {
+        ollama::response response;
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;      
@@ -456,9 +470,14 @@ class Ollama
 
     bool chat(const std::string& model, const ollama::messages& messages, std::function<void(const ollama::response&)> on_receive_token, const json& options=nullptr, const std::string& format="json", const std::string& keep_alive_duration="5m")
     {
-
-        ollama::response response;
         ollama::request request(model, messages, options, true, format, keep_alive_duration);
+        return chat(request, on_receive_token);
+    }
+
+
+    bool chat(ollama::request& request, std::function<void(const ollama::response&)> on_receive_token)
+    {
+        ollama::response response;
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;      
@@ -719,6 +738,12 @@ class Ollama
     ollama::response generate_embeddings(const std::string& model, const std::string& input, const json& options=nullptr, bool truncate = true, const std::string& keep_alive_duration="5m")
     {
         ollama::request request = ollama::request::from_embedding(model, input, options, truncate, keep_alive_duration);
+        return generate_embeddings(request);
+    }
+
+
+    ollama::response generate_embeddings(ollama::request& request)
+    {
         ollama::response response;
 
         std::string request_string = request.dump();
@@ -806,9 +831,19 @@ namespace ollama
         return ollama.generate(model, prompt, options, images);
     }
 
+    inline ollama::response generate(const ollama::request& request)
+    {
+        return ollama.generate(request);
+    }
+
     inline bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_response, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
     {
         return ollama.generate(model, prompt, on_receive_response, options, images);
+    }
+
+    inline bool generate(ollama::request& request, std::function<void(const ollama::response&)> on_receive_response)
+    {
+        return ollama.generate(request, on_receive_response);
     }
 
     inline ollama::response chat(const std::string& model, const ollama::messages& messages, const json& options=nullptr, const std::string& format="json", const std::string& keep_alive_duration="5m")
@@ -816,9 +851,19 @@ namespace ollama
         return ollama.chat(model, messages, options, format, keep_alive_duration);
     }
 
+    inline ollama::response chat(ollama::request& request)
+    {
+        return ollama.chat(request);
+    }
+
     inline bool chat(const std::string& model, const ollama::messages& messages, std::function<void(const ollama::response&)> on_receive_response, const json& options=nullptr, const std::string& format="json", const std::string& keep_alive_duration="5m")
     {
         return ollama.chat(model, messages, on_receive_response, options, format, keep_alive_duration);
+    }
+
+    inline bool chat(ollama::request& request, std::function<void(const ollama::response&)> on_receive_response)
+    {
+        return ollama.chat(request, on_receive_response);
     }
 
     inline bool create(const std::string& modelName, const std::string& modelFile, bool loadFromFile=true)
@@ -889,6 +934,11 @@ namespace ollama
     inline ollama::response generate_embeddings(const std::string& model, const std::string& input, const json& options=nullptr, bool truncate = true, const std::string& keep_alive_duration="5m")
     {
         return ollama.generate_embeddings(model, input, options, truncate, keep_alive_duration);
+    }
+
+    inline ollama::response generate_embeddings(ollama::request& request)
+    {
+        return ollama.generate_embeddings(request);
     }
 
     inline void setReadTimeout(const int& seconds)
