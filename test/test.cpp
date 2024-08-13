@@ -241,6 +241,36 @@ TEST_SUITE("Ollama Tests") {
         CHECK(response.as_json().contains("embeddings") == true);
     }
 
+    TEST_CASE("Manual Requests") {
+
+        ollama::request request(ollama::message_type::generation);
+        request["model"] = test_model;
+        request["prompt"] = "Why is the sky blue?";
+        request["stream"] = false;
+        ollama::response response = ollama::generate(request);
+
+        CHECK(response.as_json().contains("response") == true);
+
+        request = ollama::request(ollama::message_type::chat);
+        request["model"] = test_model;
+        ollama::messages messages = { ollama::message("user","Why is the sky blue?") };
+        request["messages"] = messages.to_json();
+        request["stream"] = false;
+        response = ollama::chat(request);
+
+        CHECK(response.as_json().contains("message") == true);
+
+        request = ollama::request(ollama::message_type::embedding);
+        request["model"] = test_model;
+        request["input"] = "Why is the sky blue?";
+        request["stream"] = false;
+        response = ollama::generate_embeddings(request);
+
+        CHECK(response.as_json().contains("embeddings") == true);                
+    }
+
+
+
     TEST_CASE("Enable Debug Logging") {
         
         ollama::show_requests(true);
