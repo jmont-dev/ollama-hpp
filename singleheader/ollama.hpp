@@ -34852,8 +34852,10 @@ public:
 */
 
 #include <string>
+#include <memory>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 #include <functional>
 #include <exception>
 #include <initializer_list>
@@ -35211,13 +35213,22 @@ class Ollama
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;
 
-        auto stream_callback = [on_receive_token](const char *data, size_t data_length)->bool{
+        std::shared_ptr<std::vector<std::string>> partial_responses = std::make_shared<std::vector<std::string>>();
+
+        auto stream_callback = [on_receive_token, partial_responses](const char *data, size_t data_length)->bool{
             
             std::string message(data, data_length);
             if (ollama::log_replies) std::cout << message << std::endl;
-            ollama::response response(message);
-            on_receive_token(response);
-
+            try 
+            {   
+                partial_responses->push_back(message);
+                std::string total_response = std::accumulate(partial_responses->begin(), partial_responses->end(), std::string(""));                
+                ollama::response response(total_response);
+                partial_responses->clear();  
+                on_receive_token(response); 
+            }
+            catch (...) { /* Partial response was received. Will do nothing and attempt to concatenate with the next response. */ }
+            
             return true;
         };
 
@@ -35599,6 +35610,7 @@ class Ollama
 
         return true;
     }
+
 
     std::string server_url;
     httplib::Client *cli;
