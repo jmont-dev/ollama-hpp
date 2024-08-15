@@ -34885,6 +34885,8 @@ namespace ollama
         const char* what() const noexcept override { return message.c_str(); }
     };
 
+    class invalid_json_exception : public ollama::exception { public: using exception::exception; };
+
     class image {
         public:
             image(const std::string base64_sequence, bool valid = true) 
@@ -35094,7 +35096,7 @@ namespace ollama
                                          
                     if ( json_data.contains("error") ) error_string =json_data["error"].get<std::string>();
                 }
-                catch(...) { if (ollama::use_exceptions) throw new ollama::exception("Unable to parse JSON string:"+this->json_string); valid = false; }
+                catch(...) { if (ollama::use_exceptions) throw ollama::invalid_json_exception("Unable to parse JSON string:"+this->json_string); valid = false; }
             }
             
             response() {json_string = ""; valid = false;}
@@ -35227,7 +35229,7 @@ class Ollama
                 partial_responses->clear();  
                 on_receive_token(response); 
             }
-            catch (...) { /* Partial response was received. Will do nothing and attempt to concatenate with the next response. */ }
+            catch (const ollama::invalid_json_exception& e) { /* Partial response was received. Will do nothing and attempt to concatenate with the next response. */ }
             
             return true;
         };
