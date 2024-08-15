@@ -95,6 +95,8 @@ namespace ollama
         const char* what() const noexcept override { return message.c_str(); }
     };
 
+    class invalid_json_exception : public ollama::exception { public: using exception::exception; };
+
     class image {
         public:
             image(const std::string base64_sequence, bool valid = true) 
@@ -304,7 +306,7 @@ namespace ollama
                                          
                     if ( json_data.contains("error") ) error_string =json_data["error"].get<std::string>();
                 }
-                catch(...) { if (ollama::use_exceptions) throw new ollama::exception("Unable to parse JSON string:"+this->json_string); valid = false; }
+                catch(...) { if (ollama::use_exceptions) throw ollama::invalid_json_exception("Unable to parse JSON string:"+this->json_string); valid = false; }
             }
             
             response() {json_string = ""; valid = false;}
@@ -437,7 +439,7 @@ class Ollama
                 partial_responses->clear();  
                 on_receive_token(response); 
             }
-            catch (...) { /* Partial response was received. Will do nothing and attempt to concatenate with the next response. */ }
+            catch (const ollama::invalid_json_exception& e) { /* Partial response was received. Will do nothing and attempt to concatenate with the next response. */ }
             
             return true;
         };
@@ -493,13 +495,23 @@ class Ollama
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;      
 
-        auto stream_callback = [on_receive_token](const char *data, size_t data_length)->bool{
+        std::shared_ptr<std::vector<std::string>> partial_responses = std::make_shared<std::vector<std::string>>();
+
+        auto stream_callback = [on_receive_token, partial_responses](const char *data, size_t data_length)->bool{
             
             std::string message(data, data_length);
             if (ollama::log_replies) std::cout << message << std::endl;
-            ollama::response response(message, ollama::message_type::chat);
-            if ( response.has_error() ) { if (ollama::use_exceptions) throw ollama::exception("Ollama response returned error: "+response.get_error() ); }
-            on_receive_token(response);
+            try 
+            {   
+                partial_responses->push_back(message);
+                std::string total_response = std::accumulate(partial_responses->begin(), partial_responses->end(), std::string(""));                
+                ollama::response response(total_response, ollama::message_type::chat);
+                partial_responses->clear();  
+
+                if ( response.has_error() ) { if (ollama::use_exceptions) throw ollama::exception("Ollama response returned error: "+response.get_error() ); }
+                on_receive_token(response);
+            }
+            catch (const ollama::invalid_json_exception& e) { /* Partial response was received. Will do nothing and attempt to concatenate with the next response. */ }
 
             return true;
         };
