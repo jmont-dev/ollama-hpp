@@ -425,17 +425,17 @@ ollama::response third_response = ollama::generate(model, "What was the first qu
 
 Context can also be added as JSON when creating manual requests:
 ```C++
-ollama::response response = ollama::generate("llama3:8b", "Why is the sky blue?");
+ollama::response response = ollama::generate("llama3.1:8b", "Why is the sky blue?");
 
 ollama::request request(ollama::message_type::generation);
-request["model"]="mistral";
+request["model"]="llama3.1:8b";
 request["prompt"]="Why is the sky blue?";
 request["stream"] = false;
 request["context"] = response.as_json()["context"];
 std::cout << ollama::generate(request) << std::endl;
 ```
 
-Note that the `chat` endpoint has no specialized context parameter; context is supplied through the message history of the conversation:
+Note that the `chat` endpoint has no specialized context parameter; context is simply supplied through the message history of the conversation:
 
 ```C++
 ollama::message message1("user", "What are nimbus clouds?");
@@ -444,10 +444,10 @@ ollama::message message3("user", "What was the first question I asked you?");
 
 ollama::messages messages = {message1, message2, message3};
 
-std::cout << ollama::chat("llama3:8b", messages) << std::endl;
+std::cout << ollama::chat("llama3.1:8b", messages) << std::endl;
 ```
 ### Context Length
-Most models have a maximum context length that they can accept. This determines the number of previous tokens that can be provided combined with the prompt before losing information. Llama 3.1 has a maximum context length of 128k tokens; a much smaller number of 2048 tokens is often enabled by default from Ollama in order to reduce memory usage. You can increase the size of the context window using the `num_ctx` parameter in `ollama::options`:
+Most models have a maximum context length that they can accept. This determines the number of previous tokens that can be provided along with the prompt before losing information. Llama 3.1, for example, has a maximum context length of 128k tokens; a much smaller number of <b>2048</b> tokens is often enabled by default from Ollama in order to reduce memory usage. You can increase the size of the context window using the `num_ctx` parameter in `ollama::options` for tasks where you need to retain a long conversation history:
 
 ```C++
 // Set the size of the context window to 8192 tokens.
@@ -458,7 +458,7 @@ options["num_ctx"] = 8192;
 std::cout << ollama::generate("llama3.1:8b", "Why is the sky blue?", options) << std::endl;
 ```
 
-Keep in mind that increasing context length will increase the model size in VRAM when loading to a GPU. You should ensure your hardware has sufficient memory to hold the larger model when configuring for long-context tasks.
+Keep in mind that increasing context length will increase the model size in memory when loading to a GPU. You should ensure your hardware has sufficient memory to hold the larger model when configuring for long-context tasks.
 
 ## Single-header vs Separate Headers
 For convenience, ollama-hpp includes a single-header version of the library in `singleheader/ollama.hpp` which bundles the core ollama.hpp code with single-header versions of nlohmann json, httplib, and base64.h. Each of these libraries is available under the MIT license and their respective licenses are included.
