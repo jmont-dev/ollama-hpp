@@ -57,8 +57,10 @@ The test cases do a good job of providing discrete examples for each of the API 
     - [Embedding Generation](#embedding-generation)
     - [Debug Information](#debug-information)
     - [Manual Requests](#manual-requests)
+    - [Handling Context](#handling-context)
+    - [Context Length](#context-length)
   - [Single-header vs Separate Headers](#single-header-vs-separate-headers)
-  - [About this software:](#about-this-software)
+  - [About this software](#about-this-software)
   - [License](#license)
 
 
@@ -404,13 +406,67 @@ std::cout << ollama::generate(request) << std::endl;
 ```
 This provides the most customization of the request. Users should take care to ensure that valid fields are provided, otherwise an exception will likely be thrown on response. Manual requests can be made for generate, chat, and embedding endpoints.
 
+### Handling Context
+Context from previous generate requests can be used by including a past `ollama::response` with `generate`:
+
+```C++
+std::string model = "llama3:8b";
+ollama::response context = ollama::generate(model, "Why is the sky blue?");
+ollama::response response = ollama::generate(model, "Tell me more about this.", context);
+```
+
+This will provide the past user prompt and response to the model when making a new generation. Context can be chained over multiple messages and will contain the entire conversation history from the first prompt:
+
+```C++
+ollama::response first_response = ollama::generate(model, "Why is the sky blue?");
+ollama::response second_response = ollama::generate(model, "Tell me more about this.", first_response);
+ollama::response third_response = ollama::generate(model, "What was the first question that I asked you?", second_response);
+```
+
+Context can also be added as JSON when creating manual requests:
+```C++
+ollama::response response = ollama::generate("llama3:8b", "Why is the sky blue?");
+
+ollama::request request(ollama::message_type::generation);
+request["model"]="mistral";
+request["prompt"]="Why is the sky blue?";
+request["stream"] = false;
+request["context"] = response.as_json()["context"];
+std::cout << ollama::generate(request) << std::endl;
+```
+
+Note that the `chat` endpoint has no specialized context parameter; context is supplied through the message history of the conversation:
+
+```C++
+ollama::message message1("user", "What are nimbus clouds?");
+ollama::message message2("assistant", "Nimbus clouds are dense, moisture-filled clouds that produce rain.");
+ollama::message message3("user", "What was the first question I asked you?");
+
+ollama::messages messages = {message1, message2, message3};
+
+std::cout << ollama::chat("llama3:8b", messages) << std::endl;
+```
+### Context Length
+Most models have a maximum context length that they can accept. This determines the number of previous tokens that can be provided combined with the prompt before losing information. Llama 3.1 has a maximum context length of 128k tokens; a much smaller number of 2048 tokens is often enabled by default from Ollama in order to reduce memory usage. You can increase the size of the context window using the `num_ctx` parameter in `ollama::options`:
+
+```C++
+// Set the size of the context window to 8192 tokens.
+ollama::options options;
+options["num_ctx"] = 8192; 
+
+// Perform a simple generation which includes model options.
+std::cout << ollama::generate("llama3.1:8b", "Why is the sky blue?", options) << std::endl;
+```
+
+Keep in mind that increasing context length will increase the model size in VRAM when loading to a GPU. You should ensure your hardware has sufficient memory to hold the larger model when configuring for long-context tasks.
+
 ## Single-header vs Separate Headers
 For convenience, ollama-hpp includes a single-header version of the library in `singleheader/ollama.hpp` which bundles the core ollama.hpp code with single-header versions of nlohmann json, httplib, and base64.h. Each of these libraries is available under the MIT license and their respective licenses are included.
 The single-header include can be regenerated from these standalone files by running `./make_single_header.sh`
 
 If you prefer to include the headers for these libraries separately, you can do so by including the standard header located in `include/ollama.hpp`. 
 
-## About this software:
+## About this software
 
 Ollama is a high-quality REST server and API providing an interface to run language models locally via llama.cpp.
 
