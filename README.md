@@ -410,7 +410,7 @@ This provides the most customization of the request. Users should take care to e
 Context from previous generate requests can be used by including a past `ollama::response` with `generate`:
 
 ```C++
-std::string model = "llama3:8b";
+std::string model = "llama3.1:8b";
 ollama::response context = ollama::generate(model, "Why is the sky blue?");
 ollama::response response = ollama::generate(model, "Tell me more about this.", context);
 ```
@@ -447,7 +447,7 @@ ollama::messages messages = {message1, message2, message3};
 std::cout << ollama::chat("llama3.1:8b", messages) << std::endl;
 ```
 ### Context Length
-Most models have a maximum context length that they can accept. This determines the number of previous tokens that can be provided along with the prompt before losing information. Llama 3.1, for example, has a maximum context length of 128k tokens; a much smaller number of <b>2048</b> tokens is often enabled by default from Ollama in order to reduce memory usage. You can increase the size of the context window using the `num_ctx` parameter in `ollama::options` for tasks where you need to retain a long conversation history:
+Most language models have a maximum input context length that they can accept. This length determines the number of previous tokens that can be provided along with the prompt as an input to the model before information is lost. Llama 3.1, for example, has a maximum context length of 128k tokens; a much smaller number of <b>2048</b> tokens is often enabled by default from Ollama in order to reduce memory usage. You can increase the size of the context window using the `num_ctx` parameter in `ollama::options` for tasks where you need to retain a long conversation history:
 
 ```C++
 // Set the size of the context window to 8192 tokens.
