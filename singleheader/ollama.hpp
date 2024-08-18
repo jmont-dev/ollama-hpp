@@ -35185,10 +35185,11 @@ class Ollama
     }
 
     // Generate a non-streaming reply as a string.
-    ollama::response generate(const ollama::request& request)
+    ollama::response generate(ollama::request& request)
     {
         ollama::response response;
 
+        request["stream"] = false;
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;      
 
@@ -35225,6 +35226,7 @@ class Ollama
     // Generate a streaming reply where a user-defined callback function is invoked when each token is received.
     bool generate(ollama::request& request, std::function<void(const ollama::response&)> on_receive_token)
     {
+        request["stream"] = true;
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;
@@ -35266,6 +35268,7 @@ class Ollama
     {
         ollama::response response;
 
+        request["stream"] = false;        
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;      
 
@@ -35294,7 +35297,8 @@ class Ollama
 
     bool chat(ollama::request& request, std::function<void(const ollama::response&)> on_receive_token)
     {
-        ollama::response response;
+        ollama::response response;        
+        request["stream"] = true;
 
         std::string request_string = request.dump();
         if (ollama::log_requests) std::cout << request_string << std::endl;      
@@ -35421,6 +35425,33 @@ class Ollama
         std::vector<std::string> models;
 
         json json_response = list_model_json();
+        
+        for (auto& model: json_response["models"])
+        {
+            models.push_back(model["name"]);
+        }
+
+        return models;
+    }
+
+    json running_model_json()
+    {
+        json models;
+        if (auto res = cli->Get("/api/ps"))
+        {
+            if (ollama::log_replies) std::cout << res->body << std::endl;
+            models = json::parse(res->body);
+        }
+        else { if (ollama::use_exceptions) throw ollama::exception("No response returned from server when querying running models: "+httplib::to_string( res.error() ) );}        
+
+        return models;
+    }
+
+    std::vector<std::string> list_running_models()
+    {
+        std::vector<std::string> models;
+
+        json json_response = running_model_json();
         
         for (auto& model: json_response["models"])
         {
@@ -35659,12 +35690,12 @@ namespace ollama
         return ollama.generate(model, prompt, options, images);
     }
 
-    ollama::response generate(const std::string& model,const std::string& prompt, const ollama::response& context, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
+    inline ollama::response generate(const std::string& model,const std::string& prompt, const ollama::response& context, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
     {
         return ollama.generate(model, prompt, context, options, images);
     }
 
-    inline ollama::response generate(const ollama::request& request)
+    inline ollama::response generate(ollama::request& request)
     {
         return ollama.generate(request);
     }
@@ -35732,6 +35763,16 @@ namespace ollama
     inline json list_model_json()
     {
         return ollama.list_model_json();
+    }
+
+    inline std::vector<std::string> list_running_models()
+    {
+        return ollama.list_running_models();
+    }
+
+    inline json running_model_json()
+    {
+        return ollama.running_model_json();
     }
 
     inline bool blob_exists(const std::string& digest)
