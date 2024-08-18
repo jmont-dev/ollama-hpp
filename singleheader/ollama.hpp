@@ -35171,6 +35171,13 @@ class Ollama
         Ollama(): Ollama("http://localhost:11434") {}
         ~Ollama() { delete this->cli; }
 
+    ollama::response generate(const std::string& model,const std::string& prompt, const ollama::response& context, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
+    {
+        ollama::request request(model, prompt, options, false, images);
+        if ( context.as_json().contains("context") ) request["context"] = context.as_json()["context"];
+        return generate(request);
+    }
+
     ollama::response generate(const std::string& model,const std::string& prompt, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
     {
         ollama::request request(model, prompt, options, false, images);
@@ -35199,6 +35206,13 @@ class Ollama
         }
 
         return response;        
+    }
+
+    bool generate(const std::string& model,const std::string& prompt, ollama::response& context, std::function<void(const ollama::response&)> on_receive_token, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
+    {
+        ollama::request request(model, prompt, options, true, images);
+        if ( context.as_json().contains("context") ) request["context"] = context.as_json()["context"];
+        return generate(request, on_receive_token);
     }
 
     bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_token, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
@@ -35640,9 +35654,14 @@ namespace ollama
         ollama.setServerURL(server_url);
     }
 
-    inline ollama::response generate(const std::string& model,const std::string& prompt,const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
+    inline ollama::response generate(const std::string& model, const std::string& prompt, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
     {
         return ollama.generate(model, prompt, options, images);
+    }
+
+    ollama::response generate(const std::string& model,const std::string& prompt, const ollama::response& context, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
+    {
+        return ollama.generate(model, prompt, context, options, images);
     }
 
     inline ollama::response generate(const ollama::request& request)
@@ -35653,6 +35672,11 @@ namespace ollama
     inline bool generate(const std::string& model,const std::string& prompt, std::function<void(const ollama::response&)> on_receive_response, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
     {
         return ollama.generate(model, prompt, on_receive_response, options, images);
+    }
+
+    inline bool generate(const std::string& model,const std::string& prompt, ollama::response& context, std::function<void(const ollama::response&)> on_receive_response, const json& options=nullptr, const std::vector<std::string>& images=std::vector<std::string>())
+    {
+        return ollama.generate(model, prompt, context, on_receive_response, options, images);
     }
 
     inline bool generate(ollama::request& request, std::function<void(const ollama::response&)> on_receive_response)

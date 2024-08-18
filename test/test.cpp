@@ -108,6 +108,14 @@ TEST_SUITE("Ollama Tests") {
         CHECK( response.as_json().contains("response") == true );
     }
 
+    TEST_CASE("Generation with Context") {
+
+        ollama::response context = ollama::generate(test_model, "Why is the sky blue?", options);
+
+        ollama::response response = ollama::generate(test_model, "Tell me more about this.", context, options);
+
+        CHECK( response.as_json().contains("response") == true );
+    }
 
     std::atomic<bool> done{false};
     std::string streamed_response;
@@ -128,6 +136,16 @@ TEST_SUITE("Ollama Tests") {
         std::string expected_response = "What a great question!\n\nThe sky appears blue because of a phenomenon called Rayleigh scattering,";
 
         CHECK( streamed_response != "" );
+    }
+
+    TEST_CASE("Streaming Generation with Context") {
+
+        ollama::response context = ollama::generate(test_model, "Why is the sky blue?", options);
+
+        std::function<void(const ollama::response&)> response_callback = on_receive_response;  
+        ollama::generate(test_model, "Tell me more about this.", context, response_callback, options);
+
+        CHECK( streamed_response!="" );
     }
 
     TEST_CASE("Non-Singleton Generation") {
