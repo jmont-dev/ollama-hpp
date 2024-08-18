@@ -42,7 +42,7 @@ The test cases do a good job of providing discrete examples for each of the API 
     - [Load a Model into Memory](#load-a-model-into-memory)
     - [Pull, Copy, and Delete Models](#pull-copy-and-delete-models)
     - [Retrieve Model Info](#retrieve-model-info)
-    - [List locally available models](#list-locally-available-models)
+    - [List locally-available and running models](#list-locally-available-and-running-models)
     - [Exception Handling](#exception-handling)
     - [Basic Generation](#basic-generation)
     - [Using Options](#using-options)
@@ -161,13 +161,22 @@ nlohmann::json model_info = ollama::show_model_info("llama3:8b");
 std::cout << "Model family is " << model_info["details"]["family"] << std::endl;
 ```
 
-### List locally available models
+### List locally-available and running models
 You can query a list of locally-available models on your ollama server using the following. This is returned as a `std::vector` of `std::string`.
 
 ```C++
 // List the models available locally in the ollama server
 std::vector<std::string> models = ollama::list_models();
 ```
+
+You can similarly query a list of currently-running models on your ollama server using:
+
+```C++
+// List the models available locally in the ollama server
+std::vector<std::string> models = ollama::list_running_models();
+```
+
+For detailed parameters for these models, you can obtain the verbose JSON model descriptions using `ollama::list_model_json()` and `ollama::running_model_json()`.
 
 ### Exception Handling
 Most calls will throw `ollama::exception` in the event of an error, with details on the exception that has occurred. Exceptions are enabled by default.
@@ -400,7 +409,6 @@ For those looking for greater control of the requests sent to the ollama server,
 ollama::request request(ollama::message_type::generation);
 request["model"]="mistral";
 request["prompt"]="Why is the sky blue?";
-request["stream"] = false;
 request["system"] = "Talk like a pirate for the next reply."
 std::cout << ollama::generate(request) << std::endl;
 ```
@@ -430,7 +438,6 @@ ollama::response response = ollama::generate("llama3.1:8b", "Why is the sky blue
 ollama::request request(ollama::message_type::generation);
 request["model"]="llama3.1:8b";
 request["prompt"]="Why is the sky blue?";
-request["stream"] = false;
 request["context"] = response.as_json()["context"];
 std::cout << ollama::generate(request) << std::endl;
 ```

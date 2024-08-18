@@ -88,6 +88,16 @@ TEST_SUITE("Ollama Tests") {
         CHECK( contains_model );
     }
 
+    TEST_CASE("List Running Models") {
+
+        // List the models available locally in the ollama server
+        std::vector<std::string> models = ollama::list_running_models();    
+
+        bool contains_model = (std::find(models.begin(), models.end(), test_model) != models.end() );
+
+        CHECK( contains_model );
+    }
+
     TEST_CASE("Exception Handling") {
 
         bool exception_handled = false;
