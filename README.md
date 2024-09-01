@@ -400,7 +400,7 @@ Debug logging for requests and replies to the server can easily be turned on and
 ```C++
 ollama::show_requests(true);
 ollama::show_replies(true);
-  ```
+```
 
 ### Manual Requests
 For those looking for greater control of the requests sent to the ollama server, manual requests can be created through the `ollama::request` class. This class extends `nlohmann::json` and can be treated as a standard JSON object.
