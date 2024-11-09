@@ -106,7 +106,7 @@ TEST_SUITE("Ollama Tests") {
         try { 
             ollama::generate("Non-existent-model", "Requesting this model will throw an error"); 
         } 
-        catch(ollama::exception e) { exception_handled = true; }
+        catch(ollama::exception& e) { exception_handled = true; }
 
         CHECK( exception_handled );
     }
