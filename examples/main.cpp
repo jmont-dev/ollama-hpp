@@ -62,7 +62,7 @@ int main()
 
     // Create a blob on the ollama server using the following digest
     try { ollama::create_blob("sha256:29fdb92e57cf0827ded04ae6461b5931d01fa595843f55d36f5b275a52087dd2"); std::cout << "Blob was created on Ollama server." << std::endl; }
-    catch( ollama::exception e) { std::cout << "Error when creating blob: " << e.what() << std::endl;} 
+    catch( ollama::exception& e) { std::cout << "Error when creating blob: " << e.what() << std::endl;} 
 
     // Check if a blob with the following digest exists.
     if ( ollama::blob_exists("sha256:29fdb92e57cf0827ded04ae6461b5931d01fa595843f55d36f5b275a52087dd2") ) std::cout << "Blob exists on Ollama server." << std::endl; 
@@ -95,7 +95,7 @@ int main()
     try { 
         ollama::generate("Non-existent-model", "Requesting this model will throw an error"); 
     } 
-    catch(ollama::exception e) { std::cout << e.what() << std::endl; }
+    catch(ollama::exception& e) { std::cout << e.what() << std::endl; }
 
     //Alternatively, throwing exceptions can be disabled. In this case, either emptry values or false will be returned in the event of an error.
     //ollama::allow_exceptions(false);
@@ -117,6 +117,7 @@ int main()
     // Optionally send a request to ollama to load a model into memory.
     // This will occur automatically during generation but this allows you to preload a model before using it.
     bool model_loaded = ollama::load_model("llama3:8b");
+    if (model_loaded) std::cout << "Model has been loaded";
 
     // Perform a simple generation to a string by specifying a model and a prompt. The response will be returned as one string without streaming the reply.
     std::cout << ollama::generate("llama3:8b", "Why is the sky blue?") << std::endl;

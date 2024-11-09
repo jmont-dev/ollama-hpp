@@ -34891,7 +34891,7 @@ namespace ollama
         public:
             image(const std::string base64_sequence, bool valid = true) 
             {
-                this->base64_sequence = base64_sequence;
+                this->base64_sequence = base64_sequence; this->valid = valid;
             }
             ~image(){};
 
@@ -35044,7 +35044,7 @@ namespace ollama
                 (*this)["stream"] = stream;
 
                 if (options!=nullptr) (*this)["options"] = options["options"];
-                //(*this)["format"] = format; // Commented out as providing the format causes issues with some models.
+                (void)format; //(*this)["format"] = format; // Commented out as providing the format causes issues with some models.
                 (*this)["keep_alive"] = keep_alive_duration;
                 type = message_type::chat;
 
@@ -35119,7 +35119,7 @@ namespace ollama
                 return simple_string;               
             }
 
-            const bool has_error() const
+            bool has_error() const
             {
                 if ( json_data.contains("error") ) return true;
                 return false;                
@@ -35625,7 +35625,6 @@ class Ollama
     std::string get_version()
     {
         std::string version;
-        httplib::Client cli("http://localhost:11434");
 
         auto res = this->cli->Get("/api/version");
 
@@ -35662,12 +35661,13 @@ class Ollama
 
     private:
 
+/*
     bool send_request(const ollama::request& request, std::function<void(const ollama::response&)> on_receive_response=nullptr)
     {
 
         return true;
     }
-
+*/
 
     std::string server_url;
     httplib::Client *cli;
@@ -35830,7 +35830,7 @@ namespace ollama
         ollama.setWriteTimeout(seconds);
     }
 
-};
+}
 
 
 #endif
