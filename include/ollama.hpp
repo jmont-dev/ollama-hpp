@@ -835,7 +835,6 @@ class Ollama
     std::string get_version()
     {
         std::string version;
-        httplib::Client cli("http://localhost:11434");
 
         auto res = this->cli->Get("/api/version");
 
