@@ -185,7 +185,7 @@ Most calls will throw `ollama::exception` in the event of an error, with details
 try { 
     ollama::generate("Non-existent-model", "Requesting this model will throw an error"); 
 } 
-catch(ollama::exception e) { std::cout << e.what() << std::endl; }
+catch(ollama::exception& e) { std::cout << e.what() << std::endl; }
 ```
 
 You can also dynamically enable and disable exceptions. If exceptions are disabled, functions will return an empty `ollama::response` or false where appropriate instead of throwing `ollama::exception`.
@@ -490,7 +490,7 @@ This library is a header-only C++ integration of the Ollama API providing access
 ## License
 MIT License
 
-Copyright (c) 2024 James Montgomery (jmont)
+Copyright (c) 2025 James Montgomery (jmont)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
