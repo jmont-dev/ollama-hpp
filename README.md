@@ -417,6 +417,7 @@ This provides the most customization of the request. Users should take care to e
 ### Handling Context
 Context from previous generate requests can be used by including a past `ollama::response` with `generate`:
 
+**Note:** The Context parameter has been [deprecated](https://github.com/ollama/ollama/pull/7878) in newer versions of Ollama. It is recommended to use the `chat` endpoint for maintaining context over time.
 ```C++
 std::string model = "llama3.1:8b";
 ollama::response context = ollama::generate(model, "Why is the sky blue?");
