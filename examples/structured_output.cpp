@@ -1,0 +1,59 @@
+#include "ollama.hpp"
+
+#include <iostream>
+#include <string>
+#include <functional>
+#include <thread>
+#include <chrono>
+#include <atomic>
+
+using json = nlohmann::json;
+
+int main()
+{
+
+    ollama::show_requests(false);
+    ollama::show_replies(false);
+    ollama::allow_exceptions(true);
+
+    const std::string model = "llama3.1:8b";
+
+    std::cout << "Pulling model " << model << std::endl; 
+    ollama::pull_model(model);
+    std::cout << "Finished pulling model." << std::endl;
+
+    ollama::request request(ollama::message_type::chat);
+
+    request["model"] = model;
+    ollama::messages messages = { ollama::message("user","Tell me about the country of Canada. Respond in JSON.") };
+    request["messages"] = messages.to_json();
+    request["stream"] = false;
+
+    // We can define the desired output structure in JSON under the ['format'] key.
+    request["format"] = json::parse( R"({
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "capital": {
+        "type": "string"
+      },
+      "languages": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": [
+      "name",
+      "capital", 
+      "languages"
+    ]
+  })");
+
+    ollama::response response = ollama::chat(request);
+
+    std::cout << response.as_json() << std::endl;
+}
