@@ -14,6 +14,8 @@ else
 endif
 examples: build examples/main.cpp
 	$(CXX) $(CXXFLAGS) examples/main.cpp -Iinclude -o build/examples -std=c++11 -pthread -latomic
+examples: build examples/function_calling.cpp
+	$(CXX) $(CXXFLAGS) examples/function_calling.cpp -Isingleheader -o build/function_calling -std=c++11 -pthread -latomic	
 test: test-cpp11
 test-cpp11: build test/test.cpp
 	$(CXX) $(CXXFLAGS) test/test.cpp -Iinclude -Itest -o build/test -std=c++11 -pthread -latomic
