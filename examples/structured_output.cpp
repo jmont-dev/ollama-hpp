@@ -16,7 +16,7 @@ int main()
     ollama::show_replies(false);
     ollama::allow_exceptions(true);
 
-    const std::string model = "llama3.1:8b";
+    const std::string model = "phi4-mini";
 
     std::cout << "Pulling model " << model << std::endl; 
     ollama::pull_model(model);
@@ -33,21 +33,23 @@ int main()
     request["format"] = json::parse( R"({
     "type": "object",
     "properties": {
-      "name": {
-        "type": "string"
+      "population": {
+        "type": "number",
+        "description": "The population of the country, in millions of people."
       },
       "capital": {
         "type": "string"
       },
       "languages": {
         "type": "array",
+        "description": "The monst common languages spoken in the country.",
         "items": {
           "type": "string"
         }
       }
     },
     "required": [
-      "name",
+      "population",
       "capital", 
       "languages"
     ]
@@ -55,5 +57,5 @@ int main()
 
     ollama::response response = ollama::chat(request);
 
-    std::cout << response.as_json() << std::endl;
+    std::cout << response.as_json_string() << std::endl;
 }
