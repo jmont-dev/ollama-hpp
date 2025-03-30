@@ -16,7 +16,7 @@ int main()
     ollama::show_replies(false);
     ollama::allow_exceptions(true);
 
-    const std::string model = "phi4-mini";
+    const std::string model = "llama3.1:8b";
 
     std::cout << "Pulling model " << model << std::endl; 
     ollama::pull_model(model);
