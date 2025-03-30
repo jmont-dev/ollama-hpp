@@ -4,7 +4,7 @@ CXXFLAGS = -Wall -Wextra -Wpedantic
 
 CREATE_BUILD_DIR = mkdir -p build; cp -n llama.jpg build;
 
-all: examples test-cpp11 test-cpp14 test-cpp17 test-cpp20
+all: examples function_calling test-cpp11 test-cpp14 test-cpp17 test-cpp20
 build:
 	mkdir -p build
 ifeq ($(OS),Windows_NT)
@@ -14,7 +14,7 @@ else
 endif
 examples: build examples/main.cpp
 	$(CXX) $(CXXFLAGS) examples/main.cpp -Iinclude -o build/examples -std=c++11 -pthread -latomic
-examples: build examples/function_calling.cpp
+function_calling: build examples/function_calling.cpp
 	$(CXX) $(CXXFLAGS) examples/function_calling.cpp -Isingleheader -o build/function_calling -std=c++11 -pthread -latomic	
 test: test-cpp11
 test-cpp11: build test/test.cpp
