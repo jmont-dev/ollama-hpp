@@ -463,6 +463,7 @@ class Ollama
         };
 
         if (auto res = this->cli->Post("/api/generate", request_string, "application/json", stream_callback)) { return true; }
+        else if (res.error()==httplib::Error::Canceled) { /* Request cancelled by user. */ return true; }        
         else { if (ollama::use_exceptions) throw ollama::exception( "No response from server returned at URL "+this->server_url+" Error: "+httplib::to_string( res.error() ) ); } 
 
         return false;
@@ -539,6 +540,7 @@ class Ollama
         };
 
         if (auto res = this->cli->Post("/api/chat", request_string, "application/json", stream_callback)) { return true; }
+        else if (res.error()==httplib::Error::Canceled) { /* Request cancelled by user. */ return true; }
         else { if (ollama::use_exceptions) throw ollama::exception( "No response from server returned at URL"+this->server_url+" Error: "+httplib::to_string( res.error() ) ); }
 
         return false;

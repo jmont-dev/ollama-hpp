@@ -227,17 +227,20 @@ You can use a streaming generation to bind a callback function that is invoked e
 
 ```C++
 
-void on_receive_response(const ollama::response& response)
+bool on_receive_response(const ollama::response& response)
 {   
     // Print the token received
     std::cout << response << std::flush;
 
     // The server will set "done" to true for the last response
     if (response.as_json()["done"]==true) std::cout << std::endl;
+
+    // Return true to continue streaming this response; return false to stop immediately.
+    return true;
 }
 
 // This function will be called every token
-std::function<void(const ollama::response&)> response_callback = on_receive_response;  
+std::function<bool(const ollama::response&)> response_callback = on_receive_response;  
 
 // Bind the callback to the generation
 ollama::generate("llama3:8b", "Why is the sky blue?", response_callback);
@@ -251,16 +254,19 @@ You can launch a streaming call in a thread if you don't want it to block the pr
 
 std::atomic<bool> done{false};
 
-void on_receive_response(const ollama::response& response)
+bool on_receive_response(const ollama::response& response)
 {   
     std::cout << response << std::flush;
 
     if (response.as_json()["done"]==true) { done=true;  std::cout << std::endl;}
+
+    // Return true to continue streaming this response; return false to stop immediately.
+    return !done;
 }
 
 // Use std::function to define a callback from an existing function
 // You can also use a lambda with an equivalent signature
-std::function<void(const ollama::response&)> response_callback = on_receive_response;  
+std::function<bool(const ollama::response&)> response_callback = on_receive_response;  
 
 // You can launch the generation in a thread with a callback to use it asynchronously.
 std::thread new_thread( [response_callback]{ 
@@ -270,6 +276,8 @@ std::thread new_thread( [response_callback]{
 while (!done) { std::this_thread::sleep_for(std::chrono::microseconds(100) ); }
 new_thread.join();
 ```
+The return value of the function determines whether to continue streaming or stop. This is useful in cases where you want to stop immediately instead of waiting for an entire response to return.
+
 ### Using Images
 Generations can include images for vision-enabled models such as `llava`. The `ollama::image` class can load an image from a file and encode it as a [base64](https://en.wikipedia.org/wiki/Base64) string.
 
@@ -352,14 +360,17 @@ The default chat generation does not stream tokens and will return the entire re
 
 ```C++
 
-void on_receive_response(const ollama::response& response)
+bool on_receive_response(const ollama::response& response)
 {   
   std::cout << response << std::flush;
 
   if (response.as_json()["done"]==true) std::cout << std::endl;
+
+  // Return true to continue streaming, or false to stop immediately
+  return true;
 }
 
-std::function<void(const ollama::response&)> response_callback = on_receive_response;  
+std::function<bool(const ollama::response&)> response_callback = on_receive_response;  
 
 ollama::message message("user", "Why is the sky blue?");       
 
