@@ -12,11 +12,13 @@ using json = nlohmann::json;
 
 std::atomic<bool> done{false};
 
-void on_receive_response(const ollama::response& response)
+bool on_receive_response(const ollama::response& response)
 {   
     std::cout << response << std::flush;
 
     if (response.as_json()["done"]==true) { done=true;  std::cout << std::endl;}
+
+    return !done; // Return true to continue streaming this response; return false to stop immediately.
 }
 
 // Install ollama, llama3, and llava first to run this demo
@@ -130,13 +132,14 @@ int main()
     // Perform a simple generation which includes model options.
     std::cout << ollama::generate("llama3:8b", "Why is the sky green?", options) << std::endl;
 
-    std::function<void(const ollama::response&)> response_callback = on_receive_response;  
+    std::function<bool(const ollama::response&)> response_callback = on_receive_response;  
     ollama::generate("llama3:8b", "Why is the sky orange?", response_callback);
 
     // You can launch the generation in a thread with a callback to use it asynchronously.
     std::thread new_thread( [response_callback]{ ollama::generate("llama3:8b", "Why is the sky gray?", response_callback); } );
 
     // Prevent the main thread from exiting while we wait for an asynchronous response.
+    // Alternatively, we can set done=true to stop this thread immediately.
     while (!done) { std::this_thread::sleep_for(std::chrono::microseconds(100) ); }
     new_thread.join();
 
