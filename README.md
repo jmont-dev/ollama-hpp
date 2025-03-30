@@ -1,5 +1,5 @@
 # ollama-hpp
-Modern, Header-only C++11/14/20 bindings for the [Ollama](https://ollama.ai) API.
+Modern, Header-only C++11-20 bindings for the [Ollama](https://ollama.ai) API.
 
 Access the full power of local language models in C++ with just a few lines of code:
 
@@ -10,7 +10,7 @@ std::cout << ollama::generate("llama3:8b", "Why is the sky blue?") << std::endl;
 ```
 
 ## Quick Start
-Download the header in singleheader/ollama.hpp and include it with your project to get started. No additional files or linking are required. C++11 is the minimum required language specification and C++14/20 are also supported.
+Download the header in singleheader/ollama.hpp and include it with your project to get started. No additional files or linking are required. C++11 is the minimum required language specification and C++14/17/20 are also supported.
 
 For example:
 `g++ your_source_file.cpp -Iollama-hpp/singleheader -std=c++11`
