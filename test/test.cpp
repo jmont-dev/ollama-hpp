@@ -131,16 +131,20 @@ TEST_SUITE("Ollama Tests") {
     std::string streamed_response;
 
 
-    void on_receive_response(const ollama::response& response)
+    bool on_receive_response(const ollama::response& response)
     {   
         streamed_response+=response.as_simple_string();
-
         if (response.as_json()["done"]==true) done=true;
+
+        return !done;
     }
+
 
     TEST_CASE("Streaming Generation") {
 
-        std::function<void(const ollama::response&)> response_callback = on_receive_response;  
+        streamed_response=""; done.store(false);
+
+        std::function<bool(const ollama::response&)> response_callback = on_receive_response;
         ollama::generate(test_model, "Why is the sky blue?", response_callback, options);
 
         std::string expected_response = "What a great question!\n\nThe sky appears blue because of a phenomenon called Rayleigh scattering,";
@@ -150,9 +154,11 @@ TEST_SUITE("Ollama Tests") {
 
     TEST_CASE("Streaming Generation with Context") {
 
+        streamed_response=""; done.store(false);
+
         ollama::response context = ollama::generate(test_model, "Why is the sky blue?", options);
 
-        std::function<void(const ollama::response&)> response_callback = on_receive_response;  
+        std::function<bool(const ollama::response&)> response_callback = on_receive_response;  
         ollama::generate(test_model, "Tell me more about this.", context, response_callback, options);
 
         CHECK( streamed_response!="" );
@@ -204,11 +210,54 @@ TEST_SUITE("Ollama Tests") {
         streamed_response="";
         done.store(false);
 
-        std::function<void(const ollama::response&)> response_callback = on_receive_response;  
+        std::function<bool(const ollama::response&)> response_callback = on_receive_response;  
         
         ollama::message message("user", "Why is the sky blue?");       
         
         ollama::chat(test_model, message, response_callback, options);
+
+        CHECK(streamed_response!="");
+    }
+
+    TEST_CASE("Chat with Asynchronous Streaming Response") {
+
+        ollama::show_requests(false);
+        ollama::show_replies(false);
+
+        streamed_response="";
+        done.store(false);
+
+        std::function<bool(const ollama::response&)> response_callback = on_receive_response;  
+        
+        ollama::message message("user", "Why is the sky blue?");       
+        
+        std::thread new_thread( [message, response_callback]{ ollama::chat(test_model, message, response_callback, options); } );
+
+        while (!done) { std::this_thread::sleep_for(std::chrono::microseconds(100) ); }
+        new_thread.join();
+
+        CHECK(streamed_response!="");
+    }
+
+    TEST_CASE("Chat with Asynchronous Interrupted Streaming Response") {
+
+        ollama::show_requests(false);
+        ollama::show_replies(false);
+
+        streamed_response="";
+        done.store(false);
+
+        std::function<bool(const ollama::response&)> response_callback = on_receive_response;  
+        
+        ollama::message message("user", "Why is the sky blue?");       
+        
+        std::thread new_thread( [message, response_callback]{ ollama::chat(test_model, message, response_callback, options); } );
+
+        unsigned int microsec_waited = 0;
+
+        // Interrupt the stream by setting the atomic return variable false after two seconds.
+        while (!done) { std::this_thread::sleep_for(std::chrono::microseconds(100) ); microsec_waited+=100; if (microsec_waited==2000000) { done.store(true); } }
+        new_thread.join();
 
         CHECK(streamed_response!="");
     }
