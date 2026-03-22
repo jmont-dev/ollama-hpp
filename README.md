@@ -551,7 +551,7 @@ This library is a header-only C++ integration of the Ollama API providing access
 ## License
 MIT License
 
-Copyright (c) 2025 James Montgomery (jmont)
+Copyright (c) 2026 James Montgomery (jmont)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
