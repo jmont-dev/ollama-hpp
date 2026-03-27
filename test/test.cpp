@@ -52,9 +52,13 @@ TEST_SUITE("Ollama Tests") {
         CHECK(true);
     }
 
-    TEST_CASE("Load Model") {
+    TEST_CASE("Load and Unload Models") {
 
+        // Load a model into memory
         CHECK( ollama::load_model(test_model) );
+
+        // Remove a model from memory
+        CHECK( ollama::unload_model(test_model) );
     }
 
     TEST_CASE("Pull, Copy, and Delete Models") {
