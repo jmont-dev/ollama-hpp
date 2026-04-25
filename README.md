@@ -26,6 +26,31 @@ To run the examples and test cases, use:
 `build/test` <br>
 `build/examples`
 
+## C++23 module
+The single-header distribution also includes a C++23 module interface at `singleheader/ollama.cppm`.
+It re-exports the existing `singleheader/ollama.hpp` header unit as module `ollama`, so the single header remains the source of truth.
+
+```C++
+import ollama;
+
+#include <iostream>
+
+int main() {
+    std::cout << (ollama::is_running() ? "Ollama is running" : "Ollama is not running") << std::endl;
+}
+```
+
+Build the header unit and module interface once, then compile importers against the generated module cache and link the module object:
+
+```sh
+mkdir -p build
+g++ -std=c++23 -fmodules-ts -Isingleheader -x c++-header singleheader/ollama.hpp
+g++ -std=c++23 -fmodules-ts -Isingleheader -x c++ -c singleheader/ollama.cppm -o build/ollama-module.o -pthread -latomic
+g++ -std=c++23 -fmodules-ts -Isingleheader examples/module.cpp build/ollama-module.o -o build/module-example -pthread -latomic
+```
+
+The Makefile includes the same GCC-oriented flow as `make module-example`. Other C++23 compilers use different module cache and header-unit flags, but the source-level contract is the same: build `singleheader/ollama.hpp` as a header unit, compile `singleheader/ollama.cppm`, import `ollama`, and link the compiled module interface object.
+
 ## Full API
 
 The test cases do a good job of providing discrete examples for each of the API features supported. I recommend reviewing these first in `test/test.cpp` to understand what the library and Ollama API provide.
@@ -33,6 +58,7 @@ The test cases do a good job of providing discrete examples for each of the API 
 - [ollama-hpp](#ollama-hpp)
   - [Quick Start](#quick-start)
   - [Building examples](#building-examples)
+  - [C++23 module](#c23-module)
   - [Full API](#full-api)
     - [Ollama Class and Singleton](#ollama-class-and-singleton)
     - [Ollama Response](#ollama-response)
@@ -531,6 +557,8 @@ Keep in mind that increasing context length will increase the model size in memo
 ## Single-header vs Separate Headers
 For convenience, ollama-hpp includes a single-header version of the library in `singleheader/ollama.hpp` which bundles the core ollama.hpp code with single-header versions of nlohmann json, httplib, and base64.h. Each of these libraries is available under the MIT license and their respective licenses are included.
 The single-header include can be regenerated from these standalone files by running `./make_single_header.sh`
+
+The optional C++23 module interface in `singleheader/ollama.cppm` is intentionally kept separate from the generated single header. Projects that want faster repeated builds can compile the header unit and module interface once and use `import ollama;`; projects that need the broadest compiler support can continue including `singleheader/ollama.hpp` directly.
 
 If you prefer to include the headers for these libraries separately, you can do so by including the standard header located in `include/ollama.hpp`. 
 

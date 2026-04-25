@@ -16,6 +16,10 @@ else
 endif
 examples: build examples/main.cpp
 	$(CXX) $(CXXFLAGS) examples/main.cpp -Iinclude -o build/examples -std=c++11 -pthread -latomic
+module-example: build singleheader/ollama.hpp singleheader/ollama.cppm examples/module.cpp
+	$(CXX) $(CXXFLAGS) -std=c++23 -fmodules-ts -Isingleheader -x c++-header singleheader/ollama.hpp
+	$(CXX) $(CXXFLAGS) -std=c++23 -fmodules-ts -Isingleheader -x c++ -c singleheader/ollama.cppm -o build/ollama-module.o -pthread -latomic
+	$(CXX) $(CXXFLAGS) -std=c++23 -fmodules-ts -Isingleheader examples/module.cpp build/ollama-module.o -o build/module-example -pthread -latomic
 test: test-cpp11
 test-cpp11: build test/test.cpp
 	$(BUILD_TESTS) -o build/test -std=c++11 -pthread -latomic
