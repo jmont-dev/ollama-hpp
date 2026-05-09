@@ -26923,6 +26923,7 @@ inline std::string to_string(const Error error) {
   case Error::ConnectionTimeout: return "Connection timed out";
   case Error::ProxyConnection: return "Proxy connection failed";
   case Error::Unknown: return "Unknown";
+  case Error::SSLPeerCouldBeClosed_: return "This error is for internal use only (SSLPeerCouldBeClosed_)";
   default: break;
   }
 
@@ -34990,8 +34991,8 @@ namespace hash
 */
 
 /*
-    A lightweight, header-only implementation of sha256 hashing. This is used for blob verifcation when uploading
-    GGUF files to Ollama.
+    sha256.hpp is a lightweight, header-only implementation of sha256 hashing. 
+    This is used for blob verifcation when uploading GGUF files to Ollama.
     No license is necessary for this code.
 */
 
