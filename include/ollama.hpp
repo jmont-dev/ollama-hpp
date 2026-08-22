@@ -44,6 +44,10 @@
     This library was created by Yuji Hirose and is available under the MIT License.
     For more details visit: https://github.com/yhirose/cpp-httplib
 */
+#if defined(__cpp_exceptions)
+#else
+#define CPPHTTPLIB_NO_EXCEPTIONS
+#endif
 #include "httplib.h"
 
 /* 
