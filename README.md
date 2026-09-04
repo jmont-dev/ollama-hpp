@@ -37,6 +37,7 @@ The test cases do a good job of providing discrete examples for each of the API 
     - [Ollama Class and Singleton](#ollama-class-and-singleton)
     - [Ollama Response](#ollama-response)
     - [Set Server Parameters](#set-server-parameters)
+    - [Using with llmman](#using-with-llmman)
     - [Get Server Status](#get-server-status)
     - [Get Server Version](#get-server-version)
     - [Load a Model into Memory](#load-a-model-into-memory)
@@ -118,6 +119,20 @@ ollama::setServerURL("http://localhost:11434");
 ollama::setReadTimeout(120);
 ollama::setWriteTimeout(120);
 ```
+
+### Using with llmman
+[llmman](https://github.com/llmmanorg/llmman) is a local model runner that serves the Ollama API (alongside OpenAI- and Anthropic-compatible ones) on port 17434. Since the API is the same, ollama-hpp works with it unchanged; just point the client at the llmman port:
+
+```C++
+// llmman listens on http://localhost:17434 by default (override with LLMMAN_HOST)
+ollama::setServerURL("http://localhost:17434");
+std::cout << ollama::generate("gemma4", "Why is the sky blue?") << std::endl;
+
+// Or construct a dedicated client instance
+Ollama my_llmman_server("http://localhost:17434");
+```
+
+Start the server with `llmman serve` and pull a model with `llmman pull gemma4`. Models can also be pulled straight from Hugging Face, e.g. `hf.co/unsloth/Qwen3.5-0.8B-GGUF`.
 
 ### Get Server Status
 Verify that the Ollama server is running with `ollama::is_running()`
